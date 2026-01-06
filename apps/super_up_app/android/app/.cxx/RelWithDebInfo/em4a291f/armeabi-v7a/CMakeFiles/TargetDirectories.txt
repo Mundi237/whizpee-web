@@ -1,0 +1,2 @@
+/Users/hatemragap/flutter_projects/superup/apps/super_up_app/android/app/.cxx/RelWithDebInfo/em4a291f/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/hatemragap/flutter_projects/superup/apps/super_up_app/android/app/.cxx/RelWithDebInfo/em4a291f/armeabi-v7a/CMakeFiles/rebuild_cache.dir

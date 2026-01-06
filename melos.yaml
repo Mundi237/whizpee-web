@@ -1,0 +1,104 @@
+name: superup
+repository: https://github.com/hatemragab/superup
+
+packages:
+  - packages/**
+  - apps/**
+
+command:
+  bootstrap:
+    runPubGetInParallel: false
+    usePubspecOverrides: true
+
+scripts:
+  gen: cd packages/w_translation && flutter gen-l10n --arb-dir=lib/l10n --template-arb-file=intl_en.arb --untranslated-messages-file=desiredFileName.txt
+  analyze:
+    run: |
+      melos exec -c 1 -- \
+          dart analyze . --fatal-infos
+  format:
+    run: melos exec -c 1 -- \
+      flutter format .
+  g_admin:
+    run: cd apps/super_up_admin && dart pub run build_runner build --delete-conflicting-outputs
+  g_app:
+    run: cd apps/super_up_app && dart pub run build_runner build --delete-conflicting-outputs
+  build_android: cd apps/super_up_app && flutter build apk --split-per-abi
+  build_a: cd apps/super_up_app && flutter_distributor package --platform android --targets apk --skip-clean
+  build_mac: cd apps/super_up_app && flutter_distributor release --name dev --jobs release-macos --skip-clean && flutter pub run auto_updater:sign_update dist/0.0.2+16/super_up-0.0.2+16-macos.zip
+  build_dmg: cd apps/super_up_app/installers/dmg && appdmg ./config.json ./super_up.dmg
+  build_web: cd apps/super_up_app && flutter build web --target=lib/main.dart —release --web-renderer html
+  build_admin: cd apps/super_up_admin && flutter build web --target=lib/main.dart —release --web-renderer html
+  delete_last_check: cd apps/super_up_app/macos/Pods/Sparkle/bin defaults delete com.superup.app  SULastCheckTime
+  sign_dmg:
+    run: ./apps/super_up_app/macos/Pods/Sparkle/bin/generate_appcast /Users/hatemragap/flutter_projects/super_up/apps/super_up_app/installers/dmg
+  fix:
+    run: melos exec -c 1 -- \
+      dart fix --apply
+  add-license-header:
+    # If you add here another --ignore flag, add it also to
+    # "check-license-header".
+    run: |
+      addlicense -f header_template.txt \
+        --ignore "**/*.yml" \
+        --ignore "**/*.yaml" \
+        --ignore "**/*.xml" \
+        --ignore "**/*.g.dart" \
+        --ignore "**/*.sh" \
+        --ignore "**/*.html" \
+        --ignore "**/*.js" \
+        --ignore "**/*.ts" \
+        --ignore "**/*.g.h" \
+        --ignore "**/*.g.m" \
+        --ignore "**/*.rb" \
+        --ignore "**/*.txt" \
+        --ignore "**/*.cmake" \
+        --ignore "**/Runner/AppDelegate.swift" \
+        --ignore "**/Runner/MainFlutterWindow.swift" \
+        --ignore "**/Runner/Runner-Bridging-Header.h" \
+        --ignore "**/Runner/AppDelegate.h" \
+        --ignore "**/Runner/AppDelegate.m" \
+        --ignore "**/Runner/main.m" \
+        --ignore "**/MainActivity.kt" \
+        --ignore "**/MainActivity.java" \
+        --ignore "**/FlutterMultiDexApplication.java" \
+        --ignore "**/GeneratedPluginRegistrant.swift" \
+        --ignore "**/Pods/**" \
+        --ignore "**/flutter/generated_plugin_registrant.h" \
+        --ignore "**/flutter/generated_plugin_registrant.cc" \
+        .
+    description: Add a license header to all necessary files.
+  check-license-header:
+    # If you add here another --ignore flag, add it also to
+    # "add-license-header".
+    run: |
+      addlicense -f header_template.txt \
+        --check \
+        --ignore "**/*.yml" \
+        --ignore "**/*.yaml" \
+        --ignore "**/*.xml" \
+        --ignore "**/*.g.dart" \
+        --ignore "**/*.sh" \
+        --ignore "**/*.html" \
+        --ignore "**/*.js" \
+        --ignore "**/*.ts" \
+        --ignore "**/*.g.h" \
+        --ignore "**/*.g.m" \
+        --ignore "**/*.rb" \
+        --ignore "**/*.txt" \
+        --ignore "**/*.cmake" \
+        --ignore "**/Runner/AppDelegate.swift" \
+        --ignore "**/Runner/MainFlutterWindow.swift" \
+        --ignore "**/Runner/Runner-Bridging-Header.h" \
+        --ignore "**/Runner/AppDelegate.h" \
+        --ignore "**/Runner/AppDelegate.m" \
+        --ignore "**/Runner/main.m" \
+        --ignore "**/MainActivity.kt" \
+        --ignore "**/MainActivity.java" \
+        --ignore "**/FlutterMultiDexApplication.java" \
+        --ignore "**/GeneratedPluginRegistrant.swift" \
+        --ignore "**/Pods/**" \
+        --ignore "**/flutter/generated_plugin_registrant.h" \
+        --ignore "**/flutter/generated_plugin_registrant.cc" \
+        .
+    description: Add a license header to all necessary files.

@@ -1,0 +1,154 @@
+name: super_up
+version: 1.0.1+11
+publish_to: none
+description: Super up app is social media chat system whats app clone
+environment:
+  sdk: ">=3.0.5 <4.0.0"
+
+dependencies:
+  v_chat_message_page:
+    path: ../../packages/v_chat_message_page
+  v_chat_sdk_core:
+    path: ../../packages/v_chat_sdk_core
+  v_chat_room_page:
+    path: ../../packages/v_chat_room_page
+  v_chat_media_editor:
+    path: ../../packages/v_chat_media_editor
+  #  v_chat_one_signal:
+  #    path: ../../packages/v_chat_one_signal
+  v_chat_firebase_fcm:
+    path: ../../packages/v_chat_firebase_fcm
+  v_chat_receive_share:
+    path: ../../packages/v_chat_receive_share
+  v_chat_call_service:
+    path: ../../packages/v_chat_call_service
+  cupertino_icons: ^1.0.8
+  badges: ^3.1.2
+  firebase_core: ^3.15.2
+  http: ^1.3.0
+  firebase_messaging: ^15.2.10
+  super_up_core:
+    path: ../../packages/super_up_core
+  s_translation:
+    path: ../../packages/s_translation
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  email_validator: ^3.0.0
+  touchable_opacity: ^1.2.0
+  window_manager: ^0.5.1
+  package_info_plus: ^8.3.0
+  get_it: ^8.1.0
+  firebase_auth: ^5.7.0
+  url_strategy: ^0.3.0
+  path_provider: ^2.1.5
+  responsive_builder: ^0.7.1
+  version: ^3.0.2
+  responsive_framework: ^1.5.1
+  universal_html: ^2.2.4
+  #  auto_updater: ^0.1.7
+  flutter_native_splash: ^2.4.6
+  chopper: ^8.3.0
+  logging: ^1.3.0
+  modal_bottom_sheet: ^3.0.0
+  v_platform: ^2.1.4
+  google_fonts: ^6.2.1
+  google_mobile_ads: ^6.0.0
+  loadmore: ^2.1.0
+  intl: ^0.20.2
+  url_launcher: ^6.3.2
+  share_plus: ^11.0.0
+  enum_to_string: ^2.2.1
+  adaptive_dialog: ^2.4.2
+  pinput: ^5.0.1
+  flutter_local_notifications: ^19.4.0
+  dashed_circle: ^0.0.2
+  place_picker_google: ^0.0.20
+  #  story_view: ^0.16.5
+  story_view:
+    git:
+      url: https://github.com/blackmann/story_view.git
+      ref: refs/pull/202/head
+
+  hexcolor: ^3.0.1
+  background_downloader: ^9.2.3
+  file_sizes: ^1.0.6
+  mime: ^2.0.0
+  permission_handler: ^12.0.1
+  easy_image_viewer: ^1.5.0
+  flutter_social_button: ^1.1.6+1
+  device_info_plus: ^11.1.0
+  intl_phone_field_extended:
+    git:
+      url: https://github.com/Alex-Kocharyan/intl_phone_field_extended.git
+      ref: master
+  phone_form_field: ^10.0.6
+
+  flutter_libphonenumber: ^2.5.1
+  flutter_contacts: ^1.1.9+2
+  qr_flutter: ^4.1.0
+  simple_barcode_scanner:
+    git:
+      url: https://github.com/hatemragab/simple_barcode_scanner
+  flutter_animate: ^4.5.2
+  country_detector: ^1.0.2+1
+  line_icons: ^2.0.3
+  google_sign_in: ^7.2.0
+  dio: ^5.9.0
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  build_runner: ^2.6.0
+  chopper_generator: ^8.3.0
+  #  msix: ^3.16.8
+  flutter_launcher_icons: ^0.14.3
+  change_app_package_name: ^1.5.0
+
+flutter:
+  assets:
+    - assets/
+    - assets/message/
+  uses-material-design: true
+  generate: true
+
+flutter_icons:
+  android: ic_launcher
+  image_path: assets/logo.jpg
+  ios: true
+  remove_alpha_ios: true
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/logo.jpg"
+  #  adaptive_icon_foreground: true
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  web:
+    generate: true
+    image_path: "assets/logo.jpg"
+    background_color: "#hexcode"
+    theme_color: "#hexcode"
+  windows:
+    generate: true
+    image_path: "assets/logo_stors.png"
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/logo.jpg"
+##only for windows app
+#msix_config:
+#  display_name: super up
+#  publisher_display_name: VCHATSDK
+#  publisher: CN=8A81D011-D5B0-414F-B3F7-A768A6B8C95E
+#  identity_name: 27120VCHATSDK.superup
+#  msix_version: 1.0.0.0
+#  languages: en
+#  logo_path: C:\Users\20101\flutter_projects\superup\apps\super_up_app\assets\logo_windows.png
+#  store: true
+#  capabilities: internetClient
+#  app_installer:
+#    publish_folder_path: C:\Users\20101\flutter_projects\superup\apps\super_up_app\installers\msix
+#    hours_between_update_checks: 0
+#    automatic_background_task: true
+#    update_blocks_activation: true
+#    show_prompt: true
+#    force_update_from_any_version: true
+#flutter_intl:
+#  enabled: false

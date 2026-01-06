@@ -1,0 +1,7 @@
+# melos_managed_dependency_overrides: s_translation,v_chat_sdk_core
+dependency_overrides:
+  mime: ^2.0.0
+  s_translation:
+    path: ../s_translation
+  v_chat_sdk_core:
+    path: ../v_chat_sdk_core

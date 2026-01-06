@@ -1,0 +1,86 @@
+name: v_chat_message_page
+description: v chat sdk message page ui package this package is part of v chat sdk and cant be used alone
+version: 1.1.0
+homepage: ^1.3.0
+issue_tracker: https://github.com/hatemragab/v_chat_sdk/issues
+repository: https://github.com/hatemragab/v_chat_sdk/tree/master/v_ui_packages/v_chat_message_page
+publish_to: none
+
+environment:
+  sdk: ">=2.17.0 <4.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  v_chat_sdk_core:
+    path: ../v_chat_sdk_core
+  v_chat_call_service:
+    path: ../v_chat_call_service
+  super_up_core:
+    path: ../super_up_core
+  v_chat_input_ui:
+    path: ../v_chat_input_ui
+  s_translation:
+    path: ../s_translation
+  v_chat_voice_player: ^3.1.3
+  v_chat_media_editor:
+    path: ../v_chat_media_editor
+  map_launcher: ^4.0.0
+  scroll_to_index: ^3.0.1
+  flutter_parsed_text: ^2.2.1
+  open_filex: ^4.7.0
+  share_plus: ^11.0.0
+  flutter_cache_manager: ^3.4.1
+  meta: ^1.16.0
+  flutter_dropzone: ^4.2.1
+  flutter_link_previewer: ^4.1.2
+  v_platform: ^2.1.4
+  pasteboard: ^0.4.0
+  universal_html: ^2.2.4
+  textless:
+    git:
+      url: https://github.com/hatemragab/textless.git
+  adaptive_dialog: ^2.4.2
+  cached_network_image: ^3.4.1
+  url_launcher: ^6.3.2
+  flutter_advanced_avatar: ^1.5.2
+  timeago: ^3.7.1
+  intl: ^0.20.2
+  collection: ^1.19.1
+  phosphor_flutter: ^2.1.0
+  http: ^1.3.0
+  uuid: ^4.5.1
+  path_provider: ^2.1.5
+  photo_view: ^0.15.0
+  chewie: ^1.12.1
+  video_player: ^2.10.0
+  shared_preferences: ^2.5.3
+  permission_handler: ^12.0.1
+  stop_watch_timer: ^3.2.2
+  flutter_ringtone_player: ^4.0.0+4
+  wakelock_plus: ^1.3.2
+  oktoast: ^3.4.0
+  get_it: ^8.1.0
+  any_link_preview: ^3.0.3
+  agora_rtc_engine:
+    git: https://github.com/hatemragab/Agora-Flutter-SDK.git
+  #  flutter_blurhash: ^0.8.2
+  background_downloader: ^9.2.3
+  connectivity_plus: ^6.1.4
+  audioplayers: ^6.5.0
+  path: ^1.9.1
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  lints: ^6.0.0
+
+flutter:
+  assets:
+    - assets/dialing.mp3
+platforms:
+  android:
+  ios:
+  web:
+  windows:
+  macos:

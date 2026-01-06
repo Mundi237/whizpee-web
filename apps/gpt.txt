@@ -1,0 +1,25 @@
+Hello iam flutter developer and nestjs build chat app one to one and group chat iam use mongodb and socket.io
+i need to add agora for video and voice calls
+since you know agora is just a rtc model for handle the communications between two connected users
+there are not handle for start call or pickup screen for a call or ring or accept or cancel the call or end the
+call with show the timer of the call
+i need to create a model for it in my database and handle all about single call or group call
+from my server side and save call logs for each user with all data about the call
+and handle group calls and users call please tell me the best way to handle all serious
+for the calls with agora sync to my server mongodb and socket in real time like
+if i call some one and he already in call the caller should notify and screen close
+and for reject the call and end the call all should handle in real time and recorded in the
+users log table
+
+
+
+
+i need to implement abstraction for handle various rtc call i can use agora or any rtc provider
+so i need to implement it and i should listen to call state and time and peer user data for it
+and this controller will have some method like join or exit or emit call timer or state
+
+
+develop web real time chat app backend
+which is good for fast and scalable for build chat apps
+socket.io or native websockets ?
+do full research about it

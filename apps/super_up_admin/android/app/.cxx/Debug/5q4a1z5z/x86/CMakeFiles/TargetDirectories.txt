@@ -1,0 +1,2 @@
+/Users/hatemragap/flutter_projects/superup/apps/super_up_admin/android/app/.cxx/Debug/5q4a1z5z/x86/CMakeFiles/edit_cache.dir
+/Users/hatemragap/flutter_projects/superup/apps/super_up_admin/android/app/.cxx/Debug/5q4a1z5z/x86/CMakeFiles/rebuild_cache.dir

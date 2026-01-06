@@ -1,0 +1,34 @@
+name: s_translation
+description: A new Flutter package project.
+version: 0.0.1
+publish_to: none
+homepage:
+
+environment:
+  sdk: ">=3.0.2 <4.0.0"
+
+dependencies:
+
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+
+
+flutter_intl:
+  arb-dir: lib/l10n
+  template-arb-file: intl_en.arb
+  output-dir: lib
+  main_locale: en
+  class_name: S
+  enabled: true
+
+
+#  output-localization-file: s.dart
+#  synthetic-package: false
+
+flutter:
+  generate: true
+dev_dependencies:
+  intl_utils: ^2.8.10

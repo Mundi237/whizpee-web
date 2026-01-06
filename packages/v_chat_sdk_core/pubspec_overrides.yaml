@@ -1,0 +1,7 @@
+# melos_managed_dependency_overrides: s_translation,super_up_core
+dependency_overrides:
+  mime: ^2.0.0
+  s_translation:
+    path: ../s_translation
+  super_up_core:
+    path: ../super_up_core
