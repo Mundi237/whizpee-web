@@ -26,6 +26,16 @@ class VMessageApiService {
       roomId,
       dto.toMap(),
     );
+    
+    // Handle the case where room has no messages yet (400 error with specific message)
+    if (!res.isSuccessful && res.statusCode == 400) {
+      final errorMap = res.error as Map<String, dynamic>?;
+      final errorMessage = errorMap?['data']?.toString() ?? '';
+      if (errorMessage.contains('dont have messages yet')) {
+        return []; // Return empty list instead of throwing exception
+      }
+    }
+    
     throwIfNotSuccess(res); // Throw if the response indicates failure.
     final data =
         extractDataFromResponse(res); // Extract data from the response.
@@ -45,6 +55,16 @@ class VMessageApiService {
     final res = await _messageApi!.getStarMessages(
       roomId,
     );
+    
+    // Handle the case where room has no starred messages yet (400 error with specific message)
+    if (!res.isSuccessful && res.statusCode == 400) {
+      final errorMap = res.error as Map<String, dynamic>?;
+      final errorMessage = errorMap?['data']?.toString() ?? '';
+      if (errorMessage.contains('dont have messages yet')) {
+        return []; // Return empty list instead of throwing exception
+      }
+    }
+    
     throwIfNotSuccess(res);
     final data = extractDataFromResponse(res);
     print(data);

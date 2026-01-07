@@ -18,6 +18,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   final MessageProvider messageProvider;
   final AutoScrollController scrollController;
   LoadMoreStatus _loadingStatus = LoadMoreStatus.loaded;
+  bool _isDisposed = false;
 
   MessageStateController({
     required this.vRoom,
@@ -55,11 +56,13 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   );
 
   void insertAllMessages(List<VBaseMessage> messages) {
+    if (_isDisposed) return;
     final filteredMessages = messages.where((message) => message.messageType != VMessageType.reaction).toList();
     value = sort(filteredMessages);
   }
 
   void updateApiMessages(List<VBaseMessage> apiMessages) {
+    if (_isDisposed) return;
     if (apiMessages.isEmpty) return;
 
     final newList = <VBaseMessage>[];
@@ -96,6 +99,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   }
 
   void insertMessage(VBaseMessage messageModel) {
+    if (_isDisposed) return;
     // Filter out reaction messages
     if (messageModel.messageType == VMessageType.reaction) {
       return;
@@ -112,6 +116,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   }
 
   void updateMessage(VBaseMessage messageModel) {
+    if (_isDisposed) return;
     final msgIndex = stateMessages.indexOf(messageModel);
     if (msgIndex != -1) {
       //full update
@@ -125,6 +130,8 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   }
 
   void close() {
+    if (_isDisposed) return;
+    _isDisposed = true;
     messageStateStream.close();
     dispose();
     closeSocketStatusStream();
@@ -133,6 +140,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   int _indexByLocalId(String localId) => value.indexWhere((e) => e.localId == localId);
 
   void deleteMessage(String localId) {
+    if (_isDisposed) return;
     final index = _indexByLocalId(localId);
     if (index != -1) {
       value[index].isDeleted = true;
@@ -141,6 +149,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   }
 
   void updateMessageStatus(String localId, VMessageEmitStatus emitState) {
+    if (_isDisposed) return;
     final index = _indexByLocalId(localId);
     if (index != -1) {
       value[index].emitStatus = emitState;
@@ -149,6 +158,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   }
 
   void updateMessageStar(String localId, VUpdateMessageStarEvent event) {
+    if (_isDisposed) return;
     final index = _indexByLocalId(localId);
     if (index != -1) {
       value[index].isStared = event.isStar;
@@ -156,6 +166,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
     }
   }
   void updateContentTr(String localId, String? contentTr) {
+    if (_isDisposed) return;
     final index = _indexByLocalId(localId);
     if (index != -1) {
       value[index].contentTr = contentTr;
@@ -163,6 +174,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
     }
   }
   void updateMessageOneSeen(String localId, VUpdateMessageOneSeenEvent event) {
+    if (_isDisposed) return;
     final index = _indexByLocalId(localId);
     if (index != -1) {
       value[index].isOneSeenByMe = true;
@@ -171,6 +183,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   }
 
   void updateDownloadProgress(String localId, double progress) {
+    if (_isDisposed) return;
     final index = _indexByLocalId(localId);
     if (index != -1) {
       value[index].progress = progress;
@@ -179,6 +192,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   }
 
   void updateMessageAllDeletedAt(String localId, String? allDeletedAt) {
+    if (_isDisposed) return;
     final index = _indexByLocalId(localId);
     if (index != -1) {
       value[index].allDeletedAt = allDeletedAt;
@@ -187,6 +201,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   }
 
   void updateMessageReactions(String localId, VUpdateMessageReactionsEvent event) {
+    if (_isDisposed) return;
     final index = _indexByLocalId(localId);
     if (index != -1) {
       (value[index] as dynamic).reactionNumber = event.reactionNumber;
@@ -196,6 +211,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   }
 
   void seenAll(VSocketOnRoomSeenModel model) {
+    if (_isDisposed) return;
     for (int i = 0; i < stateMessages.length; i++) {
       stateMessages[i].seenAt ??= model.date;
       stateMessages[i].deliveredAt ??= model.date;
@@ -204,6 +220,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   }
 
   void deliverAll(VSocketOnDeliverMessagesModel model) {
+    if (_isDisposed) return;
     for (int i = 0; i < stateMessages.length; i++) {
       stateMessages[i].deliveredAt ??= model.date;
     }
@@ -212,6 +229,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
 
   @override
   void onSocketConnected() {
+    if (_isDisposed) return;
     getMessagesFromRemote(_initFilterDto);
     messageProvider.setSeen(vRoom.id);
   }
@@ -226,6 +244,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
         );
       },
       onSuccess: (response) {
+        if (_isDisposed) return;
         updateApiMessages(response);
         VDownloaderService.instance.checkIfCanAutoDownloadFor(response);
       },
@@ -241,6 +260,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
         );
       },
       onSuccess: (response) {
+        if (_isDisposed) return;
         insertAllMessages(response);
         VDownloaderService.instance.checkIfCanAutoDownloadFor(response);
       },
@@ -262,6 +282,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
   }
 
   Future<List<VBaseMessage>?> loadMoreMessages() async {
+    if (_isDisposed) return null;
     _loadingStatus = LoadMoreStatus.loading;
     _filterDto.lastId = value.last.id;
     final localLoadedMessages = await messageProvider.getLocalMessages(
@@ -278,6 +299,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
           );
         },
         onSuccess: (response) {
+          if (_isDisposed) return null;
           if (response.isEmpty) {
             _loadingStatus = LoadMoreStatus.completed;
             return null;
@@ -296,6 +318,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
         failure: (error) => null,
       );
     }
+    if (_isDisposed) return null;
     _loadingStatus = LoadMoreStatus.loaded;
     final filteredLocalMessages = localLoadedMessages.where((message) => message.messageType != VMessageType.reaction).toList();
     value.addAll(filteredLocalMessages);
@@ -317,6 +340,7 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
         );
       },
       onSuccess: (response) {
+        if (_isDisposed) return;
         final filteredResponse = response.where((message) => message.messageType != VMessageType.reaction).toList();
         value.insertAll(0, filteredResponse);
         notifyListeners();
@@ -326,17 +350,20 @@ class MessageStateController extends ValueNotifier<List<VBaseMessage>> with VSoc
 
   void messageSearch(String text) async {
     final searchMessages = await messageProvider.search(vRoom.id, text);
+    if (_isDisposed) return;
     final filteredSearchMessages = searchMessages.where((message) => message.messageType != VMessageType.reaction).toList();
     value = filteredSearchMessages;
     notifyListeners();
   }
 
   void resetMessages() {
+    if (_isDisposed) return;
     _initLoadMore();
     getMessagesFromLocal();
   }
 
   void updateIsDownloading(String localId, bool isDownload) {
+    if (_isDisposed) return;
     final index = _indexByLocalId(localId);
     if (index != -1) {
       value[index].isDownloading = isDownload;

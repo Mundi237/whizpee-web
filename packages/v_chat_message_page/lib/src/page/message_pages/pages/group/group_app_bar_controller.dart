@@ -12,6 +12,7 @@ class GroupAppBarController extends ValueNotifier<GroupAppBarStateModel>
     with StreamMix {
   final VRoom vRoom;
   final MessageProvider messageProvider;
+  bool _isDisposed = false;
 
   GroupAppBarController({
     required this.vRoom,
@@ -19,10 +20,14 @@ class GroupAppBarController extends ValueNotifier<GroupAppBarStateModel>
   }) : super(GroupAppBarStateModel.fromVRoom(vRoom)) {
     streamsMix.addAll([
       VEventBusSingleton.vEventBus.on<VUpdateRoomImageEvent>().listen((event) {
+        if (_isDisposed) return;
         value.roomImage = event.image;
+        notifyListeners();
       }),
       VEventBusSingleton.vEventBus.on<VUpdateRoomNameEvent>().listen((event) {
+        if (_isDisposed) return;
         value.roomTitle = event.name;
+        notifyListeners();
       }),
       VEventBusSingleton.vEventBus
           .on<VUpdateRoomTypingEvent>()
@@ -32,31 +37,38 @@ class GroupAppBarController extends ValueNotifier<GroupAppBarStateModel>
   }
 
   void close() {
+    if (_isDisposed) return;
+    _isDisposed = true;
     closeStreamMix();
     dispose();
   }
 
   void onOpenSearch() {
+    if (_isDisposed) return;
     value.isSearching = true;
     notifyListeners();
   }
 
   void onCloseSearch() {
+    if (_isDisposed) return;
     value.isSearching = false;
     notifyListeners();
   }
 
   void updateRoomImage(String value) {
+    if (_isDisposed) return;
     this.value.roomImage = value;
     notifyListeners();
   }
 
   void updateValue(VMyGroupInfo value) {
+    if (_isDisposed) return;
     this.value.myGroupInfo = value;
     notifyListeners();
   }
 
   void updateTyping(VSocketRoomTypingModel typingModel) {
+    if (_isDisposed) return;
     value.typingModel = typingModel;
     notifyListeners();
   }

@@ -13,6 +13,7 @@ class OrderAppBarController extends ValueNotifier<OrderAppBarStateModel>
     with StreamMix {
   final VRoom vRoom;
   final MessageProvider messageProvider;
+  bool _isDisposed = false;
 
   OrderAppBarController({
     required this.vRoom,
@@ -23,36 +24,44 @@ class OrderAppBarController extends ValueNotifier<OrderAppBarStateModel>
   }
 
   void updateOnline() {
+    if (_isDisposed) return;
     value.isOnline = true;
     notifyListeners();
   }
 
   void updateTyping(VSocketRoomTypingModel typingModel) {
+    if (_isDisposed) return;
     value.typingModel = typingModel;
     notifyListeners();
   }
 
   void updateLastSeen(DateTime lastSeenAt) {
+    if (_isDisposed) return;
     value.lastSeenAt = lastSeenAt;
     notifyListeners();
   }
 
   void close() {
+    if (_isDisposed) return;
+    _isDisposed = true;
     closeStreamMix();
     dispose();
   }
 
   void updateOffline() async {
+    if (_isDisposed) return;
     value.isOnline = false;
     notifyListeners();
   }
 
   void onOpenSearch() {
+    if (_isDisposed) return;
     value.isSearching = true;
     notifyListeners();
   }
 
   void onCloseSearch() {
+    if (_isDisposed) return;
     value.isSearching = false;
     notifyListeners();
   }
@@ -90,6 +99,7 @@ class OrderAppBarController extends ValueNotifier<OrderAppBarStateModel>
         return await messageProvider.getLastSeenAt(value.peerId);
       },
       onSuccess: (response) {
+        if (_isDisposed) return;
         value.lastSeenAt = response;
         notifyListeners();
       },

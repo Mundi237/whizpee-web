@@ -29,6 +29,7 @@ abstract class VBaseMessageController extends MessageStateController with Stream
   final events = VEventBusSingleton.vEventBus;
   final VMessageConfig vMessageConfig;
   final uuid = const Uuid();
+  bool _isDisposed = false;
 
   VBaseMessageController({
     required super.vRoom,
@@ -61,6 +62,8 @@ abstract class VBaseMessageController extends MessageStateController with Stream
 
   @override
   void close() {
+    if (_isDisposed) return;
+    _isDisposed = true;
     focusNode.dispose();
     inputStateController.close();
     voiceControllers.close();
@@ -257,6 +260,7 @@ abstract class VBaseMessageController extends MessageStateController with Stream
   }
 
   void setReply(VBaseMessage p1) {
+    if (_isDisposed) return;
     focusNode.requestFocus();
     if (p1.emitStatus.isServerConfirm) {
       inputStateController.setReply(p1);
@@ -264,6 +268,7 @@ abstract class VBaseMessageController extends MessageStateController with Stream
   }
 
   void dismissReply() {
+    if (_isDisposed) return;
     inputStateController.dismissReply();
   }
 
@@ -354,31 +359,38 @@ abstract class VBaseMessageController extends MessageStateController with Stream
   }
 
   void _handleOnNewMessage(VInsertMessageEvent event) async {
+    if (_isDisposed) return;
     emitSeenFor(event.roomId);
     insertMessage(event.messageModel);
   }
 
   void _handleOnUpdateMessage(VUpdateMessageEvent event) async {
+    if (_isDisposed) return;
     updateMessage(event.messageModel);
   }
 
   void _handleOnDeleteMessage(VDeleteMessageEvent event) async {
+    if (_isDisposed) return;
     deleteMessage(event.localId);
   }
 
   void _handleOnDeliverMessage(VUpdateMessageDeliverEvent event) async {
+    if (_isDisposed) return;
     deliverAll(event.model);
   }
 
   void _handleOnSeenMessage(VUpdateMessageSeenEvent event) async {
+    if (_isDisposed) return;
     seenAll(event.model);
   }
 
   void _handleOnUpdateMessageStatus(VUpdateMessageStatusEvent event) async {
+    if (_isDisposed) return;
     updateMessageStatus(event.localId, event.emitState);
   }
 
   void _handleOnAllDeleted(VUpdateMessageAllDeletedEvent event) {
+    if (_isDisposed) return;
     updateMessageAllDeletedAt(event.localId, event.message.allDeletedAt);
   }
 
@@ -404,25 +416,31 @@ abstract class VBaseMessageController extends MessageStateController with Stream
   }
 
   void _stopVoicePlayer() {
+    if (_isDisposed) return;
     voiceControllers.pauseAll();
   }
   void _handleUpdateContentTr(VUpdateContentTr event) {
+    if (_isDisposed) return;
     updateContentTr(event.localId, event.contentTr);
   }
 
   void _handleUpdateStar(VUpdateMessageStarEvent event) {
+    if (_isDisposed) return;
     updateMessageStar(event.localId, event);
   }
 
   void _handleOnUpdateOneSeen(VUpdateMessageOneSeenEvent event) {
+    if (_isDisposed) return;
     updateMessageOneSeen(event.localId, event);
   }
 
   void _handleUpdateProgress(VUpdateProgressMessageEvent event) {
+    if (_isDisposed) return;
     updateDownloadProgress(event.localId, event.progress);
   }
 
   void _handleUpdateIsDownloading(VUpdateIsDownloadMessageEvent event) {
+    if (_isDisposed) return;
     updateIsDownloading(event.localId, event.isDownloading);
   }
 
@@ -431,10 +449,12 @@ abstract class VBaseMessageController extends MessageStateController with Stream
   }
 
   void handleMessageReaction(VBaseMessage message, String emoji) {
+    if (_isDisposed) return;
     ReactionController.toggleReaction(message, emoji);
   }
 
   void _handleUpdateMessageReactions(VUpdateMessageReactionsEvent event) {
+    if (_isDisposed) return;
     updateMessageReactions(event.localId, event);
   }
 }
