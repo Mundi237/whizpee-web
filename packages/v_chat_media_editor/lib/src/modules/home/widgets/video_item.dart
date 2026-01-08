@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:v_platform/v_platform.dart';
 import 'package:s_translation/generated/l10n.dart';
@@ -19,7 +20,7 @@ class _VideoItemConstants {
   static const double containerPadding = 8.0;
 }
 
-class VideoItem extends StatelessWidget {
+class VideoItem extends StatefulWidget {
   final VMediaVideoRes video;
   final VoidCallback onCloseClicked;
   final Function(VMediaVideoRes item) onDelete;
@@ -42,20 +43,52 @@ class VideoItem extends StatelessWidget {
   });
 
   @override
+  State<VideoItem> createState() => _VideoItemState();
+}
+
+class _VideoItemState extends State<VideoItem> with SingleTickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+  bool _isPlayPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeIn,
+    );
+    _fadeController.forward();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildTopActionBar(context),
-        Expanded(
-          child: Stack(
-            children: [
-              _buildVideoPlayer(context),
-              if (hasCustomCompressionSettings)
-                _buildCompressionIndicator(context),
-            ],
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Column(
+        children: [
+          _buildTopActionBar(context),
+          Expanded(
+            child: Stack(
+              children: [
+                _buildVideoPlayer(context),
+                if (widget.hasCustomCompressionSettings)
+                  _buildCompressionIndicator(context),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -79,7 +112,14 @@ class VideoItem extends StatelessWidget {
   Widget _buildCloseButton(BuildContext context) {
     return IconButton(
       iconSize: _VideoItemConstants.actionButtonSize,
-      onPressed: onCloseClicked,
+      onPressed: () {
+        HapticFeedback.lightImpact();
+        widget.onCloseClicked();
+      },
+      style: IconButton.styleFrom(
+        backgroundColor: Colors.black.withValues(alpha: 0.5),
+        padding: const EdgeInsets.all(8),
+      ),
       icon: const Icon(
         Icons.close,
         color: Colors.white,
@@ -114,8 +154,8 @@ class VideoItem extends StatelessWidget {
   bool _shouldShowCompressionButton() {
     return VPlatforms.isMobile &&
         !VPlatforms.isWeb &&
-        video.data.isFromPath &&
-        onCompressVideo != null;
+        widget.video.data.isFromPath &&
+        widget.onCompressVideo != null;
   }
 
   /// Builds the compression settings button
@@ -124,18 +164,27 @@ class VideoItem extends StatelessWidget {
       children: [
         IconButton(
           iconSize: _VideoItemConstants.actionButtonSize,
-          onPressed: () => onCompressVideo!(video),
+          onPressed: () {
+            HapticFeedback.selectionClick();
+            widget.onCompressVideo!(widget.video);
+          },
+          style: IconButton.styleFrom(
+            backgroundColor: widget.hasCustomCompressionSettings
+                ? Colors.green.withValues(alpha: 0.8)
+                : Colors.black.withValues(alpha: 0.5),
+            padding: const EdgeInsets.all(8),
+          ),
           icon: Icon(
             PhosphorIcons.gear(),
-            color: hasCustomCompressionSettings
-                ? Colors.green.shade300
+            color: widget.hasCustomCompressionSettings
+                ? Colors.white
                 : Colors.white,
           ),
-          tooltip: hasCustomCompressionSettings
-              ? '${S.of(context).compressionSettings} ($compressionQualityDisplay)'
+          tooltip: widget.hasCustomCompressionSettings
+              ? '${S.of(context).compressionSettings} (${widget.compressionQualityDisplay})'
               : S.of(context).compressionSettings,
         ),
-        if (hasCustomCompressionSettings)
+        if (widget.hasCustomCompressionSettings)
           Positioned(
             right: 4,
             top: 4,
@@ -145,7 +194,14 @@ class VideoItem extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.green.shade400,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1),
+                border: Border.all(color: Colors.white, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.green.shade400.withValues(alpha: 0.5),
+                    blurRadius: 4,
+                    spreadRadius: 1,
+                  ),
+                ],
               ),
             ),
           ),
@@ -157,7 +213,14 @@ class VideoItem extends StatelessWidget {
   Widget _buildDeleteButton(BuildContext context) {
     return IconButton(
       iconSize: _VideoItemConstants.actionButtonSize,
-      onPressed: () => onDelete(video),
+      onPressed: () {
+        HapticFeedback.mediumImpact();
+        widget.onDelete(widget.video);
+      },
+      style: IconButton.styleFrom(
+        backgroundColor: Colors.red.withValues(alpha: 0.8),
+        padding: const EdgeInsets.all(8),
+      ),
       icon: Icon(
         PhosphorIcons.trash(),
         color: Colors.white,
@@ -170,7 +233,14 @@ class VideoItem extends StatelessWidget {
   Widget _buildEditButton(BuildContext context) {
     return IconButton(
       iconSize: _VideoItemConstants.actionButtonSize,
-      onPressed: () => onStartDraw?.call(video),
+      onPressed: () {
+        HapticFeedback.selectionClick();
+        widget.onStartDraw?.call(widget.video);
+      },
+      style: IconButton.styleFrom(
+        backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.8),
+        padding: const EdgeInsets.all(8),
+      ),
       icon: Icon(
         PhosphorIcons.pen(),
         color: Colors.white,
@@ -192,9 +262,9 @@ class VideoItem extends StatelessWidget {
 
   /// Builds the video thumbnail background
   Widget _buildVideoThumbnail(BuildContext context) {
-    final thumbImage = video.data.thumbImage;
+    final thumbImage = widget.video.data.thumbImage;
     
-    if (thumbImage != null && video.data.isFromPath) {
+    if (thumbImage != null && widget.video.data.isFromPath) {
       final filePath = thumbImage.fileSource.fileLocalPath;
       if (filePath != null && filePath.isNotEmpty) {
         return Container(
@@ -239,19 +309,39 @@ class VideoItem extends StatelessWidget {
 
   /// Builds the play button overlay
   Widget _buildPlayButton() {
-    return InkWell(
-      onTap: () => onPlayVideo(video),
-      child: Container(
-        height: _VideoItemConstants.playButtonSize,
-        width: _VideoItemConstants.playButtonSize,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.black54,
-        ),
-        child: Icon(
-          PhosphorIcons.play(PhosphorIconsStyle.fill),
-          color: Colors.white,
-          size: _VideoItemConstants.playButtonSize * 0.4,
+    return GestureDetector(
+      onTapDown: (_) {
+        setState(() => _isPlayPressed = true);
+        HapticFeedback.mediumImpact();
+      },
+      onTapUp: (_) {
+        setState(() => _isPlayPressed = false);
+        widget.onPlayVideo(widget.video);
+      },
+      onTapCancel: () => setState(() => _isPlayPressed = false),
+      child: AnimatedScale(
+        scale: _isPlayPressed ? 0.9 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        child: Container(
+          height: _VideoItemConstants.playButtonSize,
+          width: _VideoItemConstants.playButtonSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.black54,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: _isPlayPressed ? 8 : 16,
+                spreadRadius: _isPlayPressed ? 0 : 2,
+              ),
+            ],
+          ),
+          child: Icon(
+            PhosphorIcons.play(PhosphorIconsStyle.fill),
+            color: Colors.white,
+            size: _VideoItemConstants.playButtonSize * 0.4,
+          ),
         ),
       ),
     );
@@ -262,37 +352,58 @@ class VideoItem extends StatelessWidget {
     return Positioned(
       top: 12,
       left: 12,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.green.shade600.withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+      child: TweenAnimationBuilder<double>(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutBack,
+        tween: Tween<double>(begin: 0.0, end: 1.0),
+        builder: (context, value, child) {
+          return Transform.scale(
+            scale: value,
+            child: Opacity(
+              opacity: value,
+              child: child,
             ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.settings,
-              size: 14,
-              color: Colors.white,
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.green.shade600.withValues(alpha: 0.95),
+                Colors.green.shade700.withValues(alpha: 0.95),
+              ],
             ),
-            const SizedBox(width: 4),
-            Text(
-              compressionQualityDisplay ?? S.of(context).custom,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.green.shade600.withValues(alpha: 0.4),
+                blurRadius: 8,
+                spreadRadius: 1,
+                offset: const Offset(0, 2),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.settings,
+                size: 16,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                widget.compressionQualityDisplay ?? S.of(context).custom,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

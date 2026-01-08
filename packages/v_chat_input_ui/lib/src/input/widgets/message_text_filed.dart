@@ -3,6 +3,7 @@
 // MIT license that can be found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:v_chat_input_ui/src/models/v_input_theme.dart';
 import 'package:v_chat_mention_controller/v_chat_mention_controller.dart';
 import 'package:v_platform/v_platform.dart';
@@ -47,19 +48,37 @@ class MessageTextFiled extends StatefulWidget {
   State<MessageTextFiled> createState() => _MessageTextFiledState();
 }
 
-class _MessageTextFiledState extends State<MessageTextFiled> {
+class _MessageTextFiledState extends State<MessageTextFiled>
+    with SingleTickerProviderStateMixin {
   String txt = "";
   int lines = 1;
+  late AnimationController _scaleController;
+  late Animation<double> _emojiScaleAnimation;
+  late Animation<double> _cameraScaleAnimation;
+  late Animation<double> _attachScaleAnimation;
+  bool _emojiPressed = false;
+  bool _cameraPressed = false;
+  bool _attachPressed = false;
 
   @override
   void initState() {
     super.initState();
     widget.textEditingController.addListener(_lineListener);
+    _scaleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+    );
+    _emojiScaleAnimation = Tween<double>(begin: 1.0, end: 0.92).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeOut),
+    );
+    _cameraScaleAnimation = _emojiScaleAnimation;
+    _attachScaleAnimation = _emojiScaleAnimation;
   }
 
   @override
   void dispose() {
     widget.textEditingController.removeListener(_lineListener);
+    _scaleController.dispose();
     super.dispose();
   }
 
@@ -72,12 +91,35 @@ class _MessageTextFiledState extends State<MessageTextFiled> {
           isMultiLine ? CrossAxisAlignment.end : CrossAxisAlignment.center,
       children: [
         GestureDetector(
-          onTap: widget.onShowEmoji,
-          child: Padding(
-            padding: isMultiLine
-                ? const EdgeInsets.only(bottom: 8)
-                : EdgeInsets.zero,
-            child: context.vInputTheme.emojiIcon,
+          onTapDown: (_) {
+            setState(() => _emojiPressed = true);
+            _scaleController.forward();
+            HapticFeedback.selectionClick();
+          },
+          onTapUp: (_) {
+            setState(() => _emojiPressed = false);
+            _scaleController.reverse();
+          },
+          onTapCancel: () {
+            setState(() => _emojiPressed = false);
+            _scaleController.reverse();
+          },
+          onTap: () {
+            HapticFeedback.lightImpact();
+            widget.onShowEmoji();
+          },
+          child: AnimatedBuilder(
+            animation: _emojiScaleAnimation,
+            builder: (context, child) => Transform.scale(
+              scale: _emojiPressed ? _emojiScaleAnimation.value : 1.0,
+              child: child,
+            ),
+            child: Padding(
+              padding: isMultiLine
+                  ? const EdgeInsets.only(bottom: 8)
+                  : EdgeInsets.zero,
+              child: context.vInputTheme.emojiIcon,
+            ),
           ),
         ),
         const SizedBox(
@@ -141,9 +183,45 @@ class _MessageTextFiledState extends State<MessageTextFiled> {
               children: [
                 if (VPlatforms.isMobile)
                   GestureDetector(
-                    onTap:
-                        !widget.isAllowSendMedia ? null : widget.onCameraPress,
-                    child: context.vInputTheme.cameraIcon,
+                    onTapDown: (_) {
+                      if (widget.isAllowSendMedia) {
+                        setState(() => _cameraPressed = true);
+                        _scaleController.forward();
+                        HapticFeedback.selectionClick();
+                      }
+                    },
+                    onTapUp: (_) {
+                      if (widget.isAllowSendMedia) {
+                        setState(() => _cameraPressed = false);
+                        _scaleController.reverse();
+                      }
+                    },
+                    onTapCancel: () {
+                      if (widget.isAllowSendMedia) {
+                        setState(() => _cameraPressed = false);
+                        _scaleController.reverse();
+                      }
+                    },
+                    onTap: !widget.isAllowSendMedia
+                        ? null
+                        : () {
+                            HapticFeedback.mediumImpact();
+                            widget.onCameraPress();
+                          },
+                    child: AnimatedBuilder(
+                      animation: _cameraScaleAnimation,
+                      builder: (context, child) => Transform.scale(
+                        scale: _cameraPressed
+                            ? _cameraScaleAnimation.value
+                            : 1.0,
+                        child: child,
+                      ),
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: widget.isAllowSendMedia ? 1.0 : 0.4,
+                        child: context.vInputTheme.cameraIcon,
+                      ),
+                    ),
                   ),
                 const SizedBox(
                   width: 10,
@@ -153,12 +231,47 @@ class _MessageTextFiledState extends State<MessageTextFiled> {
           ),
         ),
         GestureDetector(
-          onTap: !widget.isAllowSendMedia ? null : widget.onAttachFilePress,
-          child: Padding(
-            padding: isMultiLine
-                ? const EdgeInsets.only(bottom: 8)
-                : EdgeInsets.zero,
-            child: context.vInputTheme.fileIcon,
+          onTapDown: (_) {
+            if (widget.isAllowSendMedia) {
+              setState(() => _attachPressed = true);
+              _scaleController.forward();
+              HapticFeedback.selectionClick();
+            }
+          },
+          onTapUp: (_) {
+            if (widget.isAllowSendMedia) {
+              setState(() => _attachPressed = false);
+              _scaleController.reverse();
+            }
+          },
+          onTapCancel: () {
+            if (widget.isAllowSendMedia) {
+              setState(() => _attachPressed = false);
+              _scaleController.reverse();
+            }
+          },
+          onTap: !widget.isAllowSendMedia
+              ? null
+              : () {
+                  HapticFeedback.mediumImpact();
+                  widget.onAttachFilePress();
+                },
+          child: AnimatedBuilder(
+            animation: _attachScaleAnimation,
+            builder: (context, child) => Transform.scale(
+              scale: _attachPressed ? _attachScaleAnimation.value : 1.0,
+              child: child,
+            ),
+            child: Padding(
+              padding: isMultiLine
+                  ? const EdgeInsets.only(bottom: 8)
+                  : EdgeInsets.zero,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: widget.isAllowSendMedia ? 1.0 : 0.4,
+                child: context.vInputTheme.fileIcon,
+              ),
+            ),
           ),
         ),
       ],

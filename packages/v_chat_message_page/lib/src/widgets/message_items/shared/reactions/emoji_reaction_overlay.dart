@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 typedef OnEmojiSelected = void Function(String emoji);
 
@@ -84,7 +85,7 @@ class EmojiReactionOverlay {
   }
 }
 
-class _ReactionBar extends StatelessWidget {
+class _ReactionBar extends StatefulWidget {
   final List<String> items;
   final OnEmojiSelected onSelected;
   final VoidCallback onMore;
@@ -98,100 +99,266 @@ class _ReactionBar extends StatelessWidget {
   });
 
   @override
+  State<_ReactionBar> createState() => _ReactionBarState();
+}
+
+class _ReactionBarState extends State<_ReactionBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-          border: Border.all(
-            color: theme.dividerColor.withValues(alpha: 0.2),
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final e in items)
-              _EmojiItem(
-                emoji: e,
-                isSelected: e == currentUserEmoji,
-                onTap: () => onSelected(e),
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 16,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+              border: Border.all(
+                color: theme.dividerColor.withValues(alpha: 0.2),
+                width: 1,
               ),
-            _MoreItem(onTap: onMore),
-          ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (int i = 0; i < widget.items.length; i++)
+                  _EmojiItem(
+                    emoji: widget.items[i],
+                    isSelected: widget.items[i] == widget.currentUserEmoji,
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      widget.onSelected(widget.items[i]);
+                    },
+                    delay: Duration(milliseconds: i * 30),
+                  ),
+                _MoreItem(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    widget.onMore();
+                  },
+                  delay: Duration(milliseconds: widget.items.length * 30),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-class _EmojiItem extends StatelessWidget {
+class _EmojiItem extends StatefulWidget {
   final String emoji;
   final VoidCallback onTap;
   final bool isSelected;
+  final Duration delay;
 
   const _EmojiItem({
     required this.emoji,
     required this.onTap,
     this.isSelected = false,
+    this.delay = Duration.zero,
   });
+
+  @override
+  State<_EmojiItem> createState() => _EmojiItemState();
+}
+
+class _EmojiItemState extends State<_EmojiItem>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  bool _isPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+    );
+    Future.delayed(widget.delay, () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.all(8),
-        decoration: isSelected
-            ? BoxDecoration(
-                color: theme.primaryColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: theme.primaryColor,
-                  width: 2,
-                ),
-              )
-            : null,
-        child: Text(
-          emoji,
-          style: const TextStyle(fontSize: 24),
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: GestureDetector(
+        onTapDown: (_) {
+          setState(() => _isPressed = true);
+          HapticFeedback.selectionClick();
+        },
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _isPressed ? 0.85 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            padding: const EdgeInsets.all(10),
+            decoration: widget.isSelected
+                ? BoxDecoration(
+                    color: theme.primaryColor.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: theme.primaryColor,
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.primaryColor.withOpacity(0.3),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  )
+                : BoxDecoration(
+                    color: _isPressed
+                        ? theme.brightness == Brightness.dark
+                            ? Colors.white.withOpacity(0.1)
+                            : Colors.black.withOpacity(0.05)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+            child: Text(
+              widget.emoji,
+              style: const TextStyle(fontSize: 26),
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-class _MoreItem extends StatelessWidget {
+class _MoreItem extends StatefulWidget {
   final VoidCallback onTap;
+  final Duration delay;
 
   const _MoreItem({
     required this.onTap,
+    this.delay = Duration.zero,
   });
 
   @override
+  State<_MoreItem> createState() => _MoreItemState();
+}
+
+class _MoreItemState extends State<_MoreItem>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  bool _isPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+    );
+    Future.delayed(widget.delay, () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-        child: Icon(
-          Icons.more_horiz,
-          size: 24,
-          color: Theme.of(context).colorScheme.primary,
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: GestureDetector(
+        onTapDown: (_) {
+          setState(() => _isPressed = true);
+          HapticFeedback.selectionClick();
+        },
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _isPressed ? 0.85 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: _isPressed
+                  ? Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.black.withOpacity(0.05)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              Icons.add_circle_outline,
+              size: 26,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
         ),
       ),
     );

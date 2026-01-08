@@ -14,16 +14,16 @@ import '../../../../v_chat_media_editor.dart';
 class _HorizontalMediaItemConstants {
   static const double containerHeight = 50.0;
   static const double containerWidth = 45.0;
-  static const double borderWidth = 2.0;
-  static const double borderRadius = 1.0;
-  static const double videoBadgeRadius = 4.0;
-  static const double videoBadgePadding = 1.0;
-  static const double videoCameraIconSize = 17.0;
+  static const double borderWidth = 2.5;
+  static const double borderRadius = 6.0;
+  static const double videoBadgeRadius = 6.0;
+  static const double videoBadgePadding = 2.0;
+  static const double videoCameraIconSize = 14.0;
   static const double fileIconDefaultSize = 24.0;
-  static const double opacityLevel = 0.7;
+  static const double opacityLevel = 0.85;
 }
 
-class HorizontalMediaItem extends StatelessWidget {
+class HorizontalMediaItem extends StatefulWidget {
   final VBaseMediaRes mediaFile;
   final bool isLoading;
 
@@ -34,24 +34,64 @@ class HorizontalMediaItem extends StatelessWidget {
   });
 
   @override
+  State<HorizontalMediaItem> createState() => _HorizontalMediaItemState();
+}
+
+class _HorizontalMediaItemState extends State<HorizontalMediaItem>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _shimmerController;
+
+  @override
+  void initState() {
+    super.initState();
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _shimmerController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
       height: _HorizontalMediaItemConstants.containerHeight,
       width: _HorizontalMediaItemConstants.containerWidth,
       decoration: _buildContainerDecoration(),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          _buildMediaContent(),
-          if (_shouldShowVideoBadge()) _buildVideoBadge(),
-        ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(
+          _HorizontalMediaItemConstants.borderRadius,
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            _buildMediaContent(),
+            if (_shouldShowVideoBadge()) _buildVideoBadge(),
+            if (widget.isLoading) _buildLoadingOverlay(),
+          ],
+        ),
       ),
     );
   }
 
   /// Builds the container decoration based on selection state
   BoxDecoration? _buildContainerDecoration() {
-    if (!mediaFile.isSelected) return null;
+    if (!widget.mediaFile.isSelected) {
+      return BoxDecoration(
+        borderRadius: BorderRadius.circular(
+          _HorizontalMediaItemConstants.borderRadius,
+        ),
+        border: Border.all(
+          color: Colors.transparent,
+          width: _HorizontalMediaItemConstants.borderWidth,
+        ),
+      );
+    }
 
     return BoxDecoration(
       borderRadius: BorderRadius.circular(
@@ -61,12 +101,19 @@ class HorizontalMediaItem extends StatelessWidget {
         color: Colors.red,
         width: _HorizontalMediaItemConstants.borderWidth,
       ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.red.withValues(alpha: 0.3),
+          blurRadius: 8,
+          spreadRadius: 1,
+        ),
+      ],
     );
   }
 
   /// Builds the media content (image or placeholder)
   Widget _buildMediaContent() {
-    if (isLoading && mediaFile is VMediaVideoRes) {
+    if (widget.isLoading && widget.mediaFile is VMediaVideoRes) {
       return const SizedBox.shrink();
     }
     return _buildMediaImage();
@@ -74,32 +121,84 @@ class HorizontalMediaItem extends StatelessWidget {
 
   /// Determines if video badge should be shown
   bool _shouldShowVideoBadge() {
-    return mediaFile is VMediaVideoRes;
+    return widget.mediaFile is VMediaVideoRes && !widget.isLoading;
   }
 
   /// Builds the video camera badge overlay
   Widget _buildVideoBadge() {
     return Positioned(
-      top: 0,
-      right: 0,
-      child: Container(
-        padding: const EdgeInsets.all(
-          _HorizontalMediaItemConstants.videoBadgePadding,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.grey.withValues(
-            alpha: _HorizontalMediaItemConstants.opacityLevel,
+      top: 2,
+      right: 2,
+      child: TweenAnimationBuilder<double>(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutBack,
+        tween: Tween<double>(begin: 0.0, end: 1.0),
+        builder: (context, value, child) {
+          return Transform.scale(
+            scale: value,
+            child: child,
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(
+            _HorizontalMediaItemConstants.videoBadgePadding + 2,
           ),
-          borderRadius: BorderRadius.circular(
-            _HorizontalMediaItemConstants.videoBadgeRadius,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.black.withValues(
+                  alpha: _HorizontalMediaItemConstants.opacityLevel,
+                ),
+                Colors.black87.withValues(
+                  alpha: _HorizontalMediaItemConstants.opacityLevel,
+                ),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(
+              _HorizontalMediaItemConstants.videoBadgeRadius,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
           ),
-        ),
-        child: Icon(
-          PhosphorIcons.videoCamera(PhosphorIconsStyle.fill),
-          size: _HorizontalMediaItemConstants.videoCameraIconSize,
-          color: Colors.white,
+          child: Icon(
+            PhosphorIcons.videoCamera(PhosphorIconsStyle.fill),
+            size: _HorizontalMediaItemConstants.videoCameraIconSize,
+            color: Colors.white,
+          ),
         ),
       ),
+    );
+  }
+
+  /// Builds loading shimmer overlay
+  Widget _buildLoadingOverlay() {
+    return AnimatedBuilder(
+      animation: _shimmerController,
+      builder: (context, child) {
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.black.withValues(alpha: 0.1),
+                Colors.white.withValues(alpha: 0.3),
+                Colors.black.withValues(alpha: 0.1),
+              ],
+              stops: [
+                _shimmerController.value - 0.3,
+                _shimmerController.value,
+                _shimmerController.value + 0.3,
+              ].map((e) => e.clamp(0.0, 1.0)).toList(),
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -107,10 +206,11 @@ class HorizontalMediaItem extends StatelessWidget {
   Widget _buildMediaImage() {
     const BoxFit imageFit = BoxFit.cover;
 
-    if (mediaFile is VMediaImageRes) {
-      return _buildImageWidget(mediaFile as VMediaImageRes, imageFit);
-    } else if (mediaFile is VMediaVideoRes) {
-      return _buildVideoThumbnailWidget(mediaFile as VMediaVideoRes, imageFit);
+    if (widget.mediaFile is VMediaImageRes) {
+      return _buildImageWidget(widget.mediaFile as VMediaImageRes, imageFit);
+    } else if (widget.mediaFile is VMediaVideoRes) {
+      return _buildVideoThumbnailWidget(
+          widget.mediaFile as VMediaVideoRes, imageFit);
     }
     return _buildFallbackWidget();
   }

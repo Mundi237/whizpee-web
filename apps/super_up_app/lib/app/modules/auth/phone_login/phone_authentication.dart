@@ -1,9 +1,9 @@
 import 'package:country_detector/country_detector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:phone_form_field/phone_form_field.dart';
 import 'package:s_translation/generated/l10n.dart';
-import 'package:super_up/app/core/widgets/s_app_button.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../home/mobile/settings_tab/views/sheet_for_choose_language.dart';
@@ -18,8 +18,6 @@ class PhoneAuthentication extends StatefulWidget {
 
 class _PhoneAuthenticationState extends State<PhoneAuthentication> {
   // Constants
-  static const double _horizontalPadding = 16.0;
-  static const double _logoSize = 120.0;
   static const double _borderRadius = 16.0;
   static const String _defaultCountryCode = "CM";
 
@@ -48,148 +46,208 @@ class _PhoneAuthenticationState extends State<PhoneAuthentication> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = AppTheme.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final isDark = VThemeListener.I.isDarkMode;
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: theme.background,
-      body: Stack(
-        children: [
-          Container(
-            height: MediaQuery.sizeOf(context).height * 0.5,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(20),
-                bottom: Radius.circular(8),
-              ),
-              image: DecorationImage(
-                image: AssetImage("assets/loginchat.png"),
-                fit: BoxFit.cover,
-              ),
-            ),
-            // child: Container(
-            //   height: MediaQuery.sizeOf(context).height * 0.5,
-            //   width: double.infinity,
-            //   decoration: BoxDecoration(
-            //     gradient: RadialGradient(colors: [
-            //       Colors.white.withOpacity(0.4),
-            //       Colors.white.withOpacity(0.3),
-            //       Colors.white.withOpacity(0.2),
-            //       Colors.white.withOpacity(0.1),
-            //       Colors.black.withOpacity(0.1),
-            //       Colors.black.withOpacity(0.2),
-            //       Colors.black.withOpacity(0.3),
-            //       Colors.black.withOpacity(0.4),
-            //     ]),
-            //   ),
-            //   child: Center(
-            //     child: CircleAvatar(
-            //       radius: 70,
-            //       backgroundImage: AssetImage("assets/logo.jpg"),
-            //     ),
-            //   ),
-            // ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [
+                    const Color(0xFF0D0D0D),
+                    const Color(0xFF1A0E2E),
+                    const Color(0xFF2D1B4E),
+                  ]
+                : [
+                    const Color(0xFF000000),
+                    const Color(0xFF1A0E2E),
+                    const Color(0xFF3D2257),
+                  ],
           ),
-          SafeArea(
-            child: Form(
-              key: _formKey,
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: _horizontalPadding),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 5),
-                      _buildSettingsRow(context),
-                      // const SizedBox(height: 39),
-                      // _buildHeader(context),
-                      SizedBox(
-                        height: MediaQuery.sizeOf(context).height * 0.4,
-                      ),
-                      const SizedBox(height: 30),
-                      Text(
-                        // S.of(context).enterYourPhoneNumber,
-                        "Login",
-                        style: textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          context.pop();
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                      Text("Let's start again to chat with friend"),
-                      const SizedBox(height: 20),
-                      Text(
-                        "Phone Number",
-                        style: textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
-                            fontSize: 18),
-                      ),
-                      SizedBox(height: 8),
-                      _buildPhoneInput(context),
-                      if (_errorMessage != null) ...[
-                        const SizedBox(height: 16),
-                        _buildErrorMessage(context),
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: _showLanguageSelector,
+                          icon: Icon(
+                            Icons.language,
+                            color: Colors.white.withValues(alpha: 0.7),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: _showThemeSelector,
+                          icon: Icon(
+                            VThemeListener.I.isDarkMode
+                                ? Icons.light_mode
+                                : Icons.dark_mode,
+                            color: Colors.white.withValues(alpha: 0.7),
+                          ),
+                        ),
                       ],
-                      const SizedBox(height: 35),
-                      _buildSubmitButton(context),
-                      const SizedBox(height: 15),
-                      // OR component
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 50,
-                            child: Divider(
-                              color: theme.textSecondary,
-                            ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 20),
+                        Text(
+                          "Vérification du numéro",
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            height: 1.2,
                           ),
-                          SizedBox(width: 20),
-                          Text(
-                            "Or",
-                            style: TextStyle(
-                              color: theme.textSecondary,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(width: 20),
-                          SizedBox(
-                            width: 50,
-                            child: Divider(
-                              color: theme.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 15),
-                      AppButton(
-                        text: "Google Sign In",
-                        onPressed: _isLoading ? null : _handleGoogleSignIn,
-                        disabled: _isLoading || _loadindGoogle,
-                        customIconWidget: SvgPicture.string(
-                          googleSvgString,
-                          height: 24,
-                          width: 24,
                         ),
-                        type: AppButtonType.outlined,
-                        textColor: theme.textPrimary,
-                        borderRadius: 16,
-                        padding: const EdgeInsets.all(10),
-                        elevation: 0,
-                      ),
-                      const SizedBox(height: 24),
-                    ],
+                        const SizedBox(height: 12),
+                        Text(
+                          "Entrez votre numéro de téléphone pour recevoir un code de confirmation.",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white.withValues(alpha: 0.7),
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 48),
+                        _buildPhoneInput(context),
+                        if (_errorMessage != null) ...[
+                          const SizedBox(height: 16),
+                          _buildErrorMessage(context),
+                        ],
+                        const SizedBox(height: 32),
+                        _buildSubmitButton(context),
+                        const SizedBox(height: 32),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Divider(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                thickness: 1,
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                "OU",
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Divider(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                thickness: 1,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 32),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _isLoading || _loadindGoogle
+                                ? null
+                                : _handleGoogleSignIn,
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 18, horizontal: 24),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (_loadindGoogle)
+                                    SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white),
+                                      ),
+                                    )
+                                  else
+                                    SvgPicture.string(
+                                      googleSvgString,
+                                      height: 24,
+                                      width: 24,
+                                    ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    "Continuer avec Google",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -204,34 +262,6 @@ class _PhoneAuthenticationState extends State<PhoneAuthentication> {
     setState(() {
       _loadindGoogle = false;
     });
-  }
-
-  /// Builds the settings row with theme and language options
-  Widget _buildSettingsRow(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        // Language Selector
-        IconButton(
-          onPressed: _showLanguageSelector,
-          icon: Icon(
-            Icons.language,
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(width: 8),
-        // Theme Selector
-        IconButton(
-          onPressed: _showThemeSelector,
-          icon: Icon(
-            VThemeListener.I.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    );
   }
 
   /// Shows language selection bottom sheet
@@ -343,123 +373,73 @@ class _PhoneAuthenticationState extends State<PhoneAuthentication> {
     );
   }
 
-  /// Builds the header section with logo and text
-  Widget _buildHeader(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Column(
-      children: [
-        // Logo
-        Center(
-          child: Container(
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: Image.asset(
-                "assets/logo.jpg",
-                height: _logoSize,
-                width: _logoSize,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: _logoSize,
-                    width: _logoSize,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Icon(
-                      Icons.phone_android,
-                      size: 60,
-                      color: colorScheme.onPrimary,
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 48),
-        // Title
-        Text(
-          S.of(context).enterYourPhoneNumber,
-          style: textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 12),
-        // Subtitle
-        Text(
-          S.of(context).weWillSendYouAVerificationCode,
-          style: textTheme.bodyLarge?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
   /// Builds the phone input field
   Widget _buildPhoneInput(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_borderRadius),
-      ),
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: PhoneFormField(
-          controller: _phoneController,
-          decoration: InputDecoration(
-            labelText: S.of(context).phoneNumber,
-            labelStyle: TextStyle(color: colorScheme.primary),
-            helperText: _isCountryDetected ? null : "Detecting country",
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(_borderRadius),
-              borderSide: BorderSide(color: colorScheme.outline),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(_borderRadius),
-              borderSide: BorderSide(
-                color: colorScheme.outline.withValues(alpha: 0.5),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(_borderRadius),
-              borderSide: BorderSide(color: colorScheme.primary, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(_borderRadius),
-              borderSide: BorderSide(color: colorScheme.error, width: 2),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(_borderRadius),
-              borderSide: BorderSide(color: colorScheme.error, width: 2),
-            ),
-            filled: true,
-            fillColor: Colors.transparent,
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: PhoneFormField(
+        controller: _phoneController,
+        style: TextStyle(color: Colors.white, fontSize: 16),
+        decoration: InputDecoration(
+          hintText: "Numéro de téléphone",
+          hintStyle: TextStyle(
+            color: Colors.white.withValues(alpha: 0.4),
+            fontSize: 16,
           ),
-          validator: PhoneValidator.compose([
-            PhoneValidator.required(context),
-            PhoneValidator.validMobile(context),
-          ]),
-          countrySelectorNavigator:
-              const CountrySelectorNavigator.draggableBottomSheet(),
-          onChanged: _onPhoneNumberChanged,
-          autofocus: true,
-          countryButtonStyle: const CountryButtonStyle(
-            showDialCode: true,
-            showIsoCode: false,
-            showFlag: true,
+          helperText: _isCountryDetected ? null : "Détection du pays...",
+          helperStyle: TextStyle(
+            color: Colors.white.withValues(alpha: 0.5),
+            fontSize: 12,
           ),
+          filled: true,
+          fillColor: Colors.white.withValues(alpha: 0.1),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(_borderRadius),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(_borderRadius),
+            borderSide: BorderSide(
+              color: Colors.white.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(_borderRadius),
+            borderSide: BorderSide(
+              color: AppTheme.primaryGreen,
+              width: 2,
+            ),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(_borderRadius),
+            borderSide: BorderSide(
+              color: Colors.red.shade400,
+              width: 2,
+            ),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(_borderRadius),
+            borderSide: BorderSide(
+              color: Colors.red.shade400,
+              width: 2,
+            ),
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        ),
+        validator: PhoneValidator.compose([
+          PhoneValidator.required(context),
+          PhoneValidator.validMobile(context),
+        ]),
+        countrySelectorNavigator:
+            const CountrySelectorNavigator.draggableBottomSheet(),
+        onChanged: _onPhoneNumberChanged,
+        autofocus: true,
+        countryButtonStyle: const CountryButtonStyle(
+          showDialCode: true,
+          showIsoCode: false,
+          showFlag: true,
         ),
       ),
     );
@@ -467,28 +447,31 @@ class _PhoneAuthenticationState extends State<PhoneAuthentication> {
 
   /// Builds error message widget
   Widget _buildErrorMessage(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.red.shade900.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.red.shade400.withValues(alpha: 0.5),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
           Icon(
-            Icons.error_outline,
-            color: colorScheme.onErrorContainer,
-            size: 20,
+            Icons.error_outline_rounded,
+            color: Colors.red.shade300,
+            size: 24,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               _errorMessage!,
               style: TextStyle(
-                color: colorScheme.onErrorContainer,
+                color: Colors.red.shade100,
                 fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -499,9 +482,61 @@ class _PhoneAuthenticationState extends State<PhoneAuthentication> {
 
   /// Builds the submit button
   Widget _buildSubmitButton(BuildContext context) {
-    return AppButton(
-      text: S.of(context).sendVerificationCode,
-      onPressed: _isButtonActive && !_isLoading ? _handleSubmit : null,
+    final bool isEnabled = _isButtonActive && !_isLoading;
+
+    return SizedBox(
+      width: double.infinity,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isEnabled ? _handleSubmit : null,
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            decoration: BoxDecoration(
+              gradient: isEnabled
+                  ? LinearGradient(
+                      colors: [
+                        AppTheme.primaryGreen,
+                        AppTheme.primaryGreen.withValues(alpha: 0.8),
+                      ],
+                    )
+                  : null,
+              color: isEnabled ? null : Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: isEnabled
+                  ? [
+                      BoxShadow(
+                        color: AppTheme.primaryGreen.withValues(alpha: 0.4),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Center(
+              child: _isLoading
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      "Envoyer le code",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

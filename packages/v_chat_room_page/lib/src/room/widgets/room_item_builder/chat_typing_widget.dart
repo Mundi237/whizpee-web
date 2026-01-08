@@ -3,14 +3,9 @@
 // MIT license that can be found in the LICENSE file.
 
 import 'package:flutter/cupertino.dart';
-import 'package:textless/textless.dart';
+import 'package:flutter/material.dart';
 
-/// A widget that displays typing indicator in the chat.
-/// This widget receives a [text] parameter, which is a string that represents
-/// the text to be displayed along with the typing indicator.
-/// This widget is stateless, so any changes to the [text] property will cause
-/// a rebuild of the widget tree. */ class ChatTypingWidget extends StatelessWidget { final String text; const ChatTypingWidget({Key? key, required this.text}) : super(key: key); }
-class ChatTypingWidget extends StatelessWidget {
+class ChatTypingWidget extends StatefulWidget {
   /// The text to be displayed along with the typing indicator.
   final String text;
 
@@ -18,7 +13,75 @@ class ChatTypingWidget extends StatelessWidget {
   const ChatTypingWidget({super.key, required this.text});
 
   @override
+  State<ChatTypingWidget> createState() => _ChatTypingWidgetState();
+}
+
+class _ChatTypingWidgetState extends State<ChatTypingWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return text.text.color(CupertinoColors.systemGreen);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AnimatedBuilder(
+          animation: _pulseAnimation,
+          builder: (context, child) => Opacity(
+            opacity: _pulseAnimation.value,
+            child: child,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(
+              3,
+              (index) => Padding(
+                padding: const EdgeInsets.only(right: 2),
+                child: Container(
+                  width: 5,
+                  height: 5,
+                  decoration: const BoxDecoration(
+                    color: CupertinoColors.systemGreen,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            widget.text,
+            style: const TextStyle(
+              color: CupertinoColors.systemGreen,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
   }
 }

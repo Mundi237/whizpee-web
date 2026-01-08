@@ -77,188 +77,335 @@ class _OTPScreenState extends State<OTPScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = AppTheme.of(context);
+    final isDark = VThemeListener.I.isDarkMode;
     return Scaffold(
-      backgroundColor: theme.background,
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        title: Text(S.of(context).codePage),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: MediaQuery.of(context).size.height * 0.04),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [
+                    const Color(0xFF0D0D0D),
+                    const Color(0xFF1A0E2E),
+                    const Color(0xFF2D1B4E),
+                  ]
+                : [
+                    const Color(0xFF000000),
+                    const Color(0xFF1A0E2E),
+                    const Color(0xFF3D2257),
+                  ],
+          ),
+        ),
+        child: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // Top bar with back button
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          context.pop();
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Expanded(
                 child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.02),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: Image.asset(
-                          "assets/logo.jpg",
-                          height: 120,
-                          width: 120,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
+                      const SizedBox(height: 20),
                       // Title
                       Text(
-                        S.of(context).enterVerificationCode,
-                        style: const TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.bold),
+                        "Saisissez le code reçu",
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          height: 1.2,
+                        ),
                       ),
                       const SizedBox(height: 12),
-
                       // Subtitle with masked phone number
                       Text(
-                        S.of(context).sentSixDigitCode(
-                            formatPhoneNumber(widget.userPhone)),
-                        textAlign: TextAlign.center,
+                        "Entrez le code à 6 chiffres envoyé par SMS au\n${formatPhoneNumber(widget.userPhone)}",
                         style: TextStyle(
-                            fontSize: 16,
-                            color: theme.textPrimary.withValues(alpha: 0.6)),
+                          fontSize: 16,
+                          color: Colors.white.withValues(alpha: 0.7),
+                          height: 1.5,
+                        ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 48),
 
                       // OTP Input
-                      Pinput(
-                        length: 6,
-                        pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                        showCursor: true,
-                        autofocus: true,
-                        controller: codeController,
-                        onCompleted: (pin) {
-                          HapticFeedback.mediumImpact();
-                          if (!_isLoading) _login();
-                        },
-                        onChanged: (value) {
-                          setState(() {
-                            code = value;
-                            if (_hasError) _hasError = false;
-                            if (errorText != null) errorText = null;
-                          });
-                        },
-                        defaultPinTheme: PinTheme(
-                          width: 56,
-                          height: 56,
-                          textStyle: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(
+                      Center(
+                        child: Pinput(
+                          length: 6,
+                          pinputAutovalidateMode:
+                              PinputAutovalidateMode.onSubmit,
+                          showCursor: true,
+                          autofocus: true,
+                          controller: codeController,
+                          onCompleted: (pin) {
+                            HapticFeedback.mediumImpact();
+                            if (!_isLoading) _login();
+                          },
+                          onChanged: (value) {
+                            setState(() {
+                              code = value;
+                              if (_hasError) _hasError = false;
+                              if (errorText != null) errorText = null;
+                            });
+                          },
+                          defaultPinTheme: PinTheme(
+                            width: 52,
+                            height: 60,
+                            textStyle: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              border: Border.all(
                                 color: _hasError
-                                    ? Colors.red.shade300
-                                    : Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(12),
-                            color: theme.background,
+                                    ? Colors.red.shade400
+                                    : Colors.white.withValues(alpha: 0.2),
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                        ),
-                        focusedPinTheme: PinTheme(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            border: Border.all(
+                          focusedPinTheme: PinTheme(
+                            width: 52,
+                            height: 60,
+                            textStyle: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              border: Border.all(
                                 color: _hasError
                                     ? Colors.red
-                                    : AppColors.primaryColor,
-                                width: 2),
-                            borderRadius: BorderRadius.circular(12),
+                                    : AppTheme.primaryGreen,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _hasError
+                                      ? Colors.red.withValues(alpha: 0.3)
+                                      : AppTheme.primaryGreen
+                                          .withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        errorPinTheme: PinTheme(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.red, width: 2),
-                            borderRadius: BorderRadius.circular(12),
+                          submittedPinTheme: PinTheme(
+                            width: 52,
+                            height: 60,
+                            textStyle: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  AppTheme.primaryGreen.withValues(alpha: 0.2),
+                              border: Border.all(
+                                color: AppTheme.primaryGreen,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          errorPinTheme: PinTheme(
+                            width: 52,
+                            height: 60,
+                            textStyle: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade900.withValues(alpha: 0.2),
+                              border: Border.all(color: Colors.red, width: 2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                         ),
                       ),
 
                       // Error Message
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        height: errorText != null ? 40 : 0,
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: errorText != null
-                            ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.error_outline,
-                                    color: Colors.red,
-                                    size: 16,
+                      if (errorText != null)
+                        Container(
+                          margin: const EdgeInsets.only(top: 24),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade900.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.red.shade400.withValues(alpha: 0.5),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.error_outline_rounded,
+                                color: Colors.red.shade300,
+                                size: 24,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  errorText!,
+                                  style: TextStyle(
+                                    color: Colors.red.shade100,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                  const SizedBox(width: 8),
-                                  Flexible(
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      const SizedBox(height: 32),
+                      // Resend code option
+                      Center(
+                        child: Column(
+                          children: [
+                            Text(
+                              "Vous n'avez pas reçu le code ?",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withValues(alpha: 0.7),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _isResendActive
+                                ? TextButton(
+                                    onPressed: () {
+                                      HapticFeedback.lightImpact();
+                                      _resendCode();
+                                    },
                                     child: Text(
-                                      errorText!,
-                                      style: const TextStyle(
-                                          color: Colors.red, fontSize: 14),
+                                      "Renvoyer le code",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.primaryGreen,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  )
+                                : Text(
+                                    "Renvoyer le code ($_remainingSeconds",
+                                    style: TextStyle(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.5),
+                                      fontSize: 14,
                                     ),
                                   ),
-                                ],
-                              )
-                            : const SizedBox(),
+                          ],
+                        ),
                       ),
+                      const SizedBox(height: 32),
 
-                      const SizedBox(height: 24),
-
-                      // Resend code option
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            S.of(context).didntReceiveCode,
-                            style: TextStyle(
-                                fontSize: 14,
-                                color:
-                                    theme.textPrimary.withValues(alpha: 0.7)),
+                      // Verify Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap:
+                                (isBtnActive() && !_isLoading) ? _login : null,
+                            borderRadius: BorderRadius.circular(16),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              decoration: BoxDecoration(
+                                gradient: (isBtnActive() && !_isLoading)
+                                    ? LinearGradient(
+                                        colors: [
+                                          AppTheme.primaryGreen,
+                                          AppTheme.primaryGreen
+                                              .withValues(alpha: 0.8),
+                                        ],
+                                      )
+                                    : null,
+                                color: (isBtnActive() && !_isLoading)
+                                    ? null
+                                    : Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: (isBtnActive() && !_isLoading)
+                                    ? [
+                                        BoxShadow(
+                                          color: AppTheme.primaryGreen
+                                              .withValues(alpha: 0.4),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 8),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Center(
+                                child: _isLoading
+                                    ? SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  Colors.white),
+                                        ),
+                                      )
+                                    : Text(
+                                        "Confirmer",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                              ),
+                            ),
                           ),
-                          _isResendActive
-                              ? TextButton(
-                                  onPressed: _resendCode,
-                                  style: TextButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: const Size(50, 30),
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: Text(
-                                    S.of(context).resend,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primaryColor),
-                                  ),
-                                )
-                              : Text(
-                                  S
-                                      .of(context)
-                                      .resendInSeconds(_remainingSeconds),
-                                  style: TextStyle(
-                                      color: AppColors.primaryColor
-                                          .withValues(alpha: 0.7)),
-                                ),
-                        ],
+                        ),
                       ),
+                      const SizedBox(height: 24),
                     ],
                   ),
-                ),
-              ),
-
-              // Verify Button
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.5,
-                height: 50,
-                child: SElevatedButton(
-                  title: _isLoading ? "" : S.of(context).verify,
-                  onPress: (isBtnActive() && !_isLoading) ? _login : null,
                 ),
               ),
             ],

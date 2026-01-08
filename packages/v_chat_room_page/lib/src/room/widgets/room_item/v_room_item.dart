@@ -3,6 +3,8 @@
 // MIT license that can be found in the LICENSE file.
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:s_translation/generated/l10n.dart';
 import 'package:v_chat_room_page/src/room/shared/shared.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart';
@@ -28,7 +30,7 @@ import 'message_status_icon.dart';
 /// ///
 /// Example usage:
 /// /// dart /// VRoomItem( /// room: myVirtualRoom, /// isIconOnly: true, /// onRoomItemPress: (room) { /// // Handle press event /// }, /// onRoomItemLongPress: (room) { /// // Handle long press event /// }, /// ) ///
-class VRoomItem extends StatelessWidget {
+class VRoomItem extends StatefulWidget {
   /// The virtual room object that this item represents.
   final VRoom room;
 
@@ -55,155 +57,220 @@ class VRoomItem extends StatelessWidget {
   });
 
   @override
+  State<VRoomItem> createState() => _VRoomItemState();
+}
+
+class _VRoomItemState extends State<VRoomItem>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  bool _isPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (room.isDeleted) return const SizedBox.shrink();
+    if (widget.room.isDeleted) return const SizedBox.shrink();
     final theme = context.vRoomTheme;
     return GestureDetector(
+      onTapDown: (_) {
+        setState(() => _isPressed = true);
+        _controller.forward();
+        HapticFeedback.selectionClick();
+      },
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        _controller.reverse();
+      },
+      onTapCancel: () {
+        setState(() => _isPressed = false);
+        _controller.reverse();
+      },
       onTap: () {
-        onRoomItemPress(room);
+        HapticFeedback.lightImpact();
+        widget.onRoomItemPress(widget.room);
       },
       onLongPress: () {
-        onRoomItemLongPress(room);
+        HapticFeedback.mediumImpact();
+        widget.onRoomItemLongPress(widget.room);
       },
-      child: Container(
-        height: 65,
-        width: 65,
-        alignment: AlignmentDirectional.topStart,
-        decoration: BoxDecoration(
-          color: isSelected ? theme.selectedRoomColor : null,
-          borderRadius: BorderRadius.circular(4),
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) => Transform.scale(
+          scale: _scaleAnimation.value,
+          child: child,
         ),
-        child: isIconOnly
-            ? theme.getChatAvatar(
-                imageUrl: room.thumbImageS3,
-                chatTitle: room.realTitle,
-                isOnline: room.isOnline,
-                size: 60,
-              )
-            : Row(
-                children: [
-                  theme.getChatAvatar(
-                    imageUrl: room.thumbImageS3,
-                    chatTitle: room.realTitle,
-                    isOnline: room.isOnline,
-                    size: 60,
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                  Flexible(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ///header and time
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(
-                              child: ChatTitle(title: room.realTitle),
-                            ),
-                            ChatLastMsgTime(
-                              yesterdayLabel: S.of(context).yesterday,
-                              lastMessageTime: room.lastMessageTime,
-                            )
-                          ],
-                        ),
-                        const SizedBox.shrink(),
-
-                        ///message and icons
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            if (_roomTypingText(room.typingStatus) != null)
-                              ChatTypingWidget(
-                                text: _roomTypingText(room.typingStatus)!,
-                              )
-                            else if (room.lastMessage.isMeSender)
-
-                              ///icon
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          height: 65,
+          width: 65,
+          alignment: AlignmentDirectional.topStart,
+          decoration: BoxDecoration(
+            color: widget.isSelected
+                ? theme.selectedRoomColor
+                : _isPressed
+                    ? Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white.withOpacity(0.05)
+                        : Colors.black.withOpacity(0.03)
+                    : null,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: widget.isIconOnly
+              ? theme.getChatAvatar(
+                  imageUrl: widget.room.thumbImageS3,
+                  chatTitle: widget.room.realTitle,
+                  isOnline: widget.room.isOnline,
+                  size: 60,
+                )
+              : Row(
+                  children: [
+                    theme.getChatAvatar(
+                      imageUrl: widget.room.thumbImageS3,
+                      chatTitle: widget.room.realTitle,
+                      isOnline: widget.room.isOnline,
+                      size: 60,
+                    ),
+                    const SizedBox(
+                      width: 12,
+                    ),
+                    Flexible(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ///header and time
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
                               Flexible(
-                                child: Row(
-                                  children: [
-                                    //status
-                                    MessageStatusIcon(
-                                      model: MessageStatusIconDataModel(
-                                        isAllDeleted:
-                                            room.lastMessage.allDeletedAt !=
-                                                null,
-                                        isSeen: room.lastMessage.seenAt != null,
-                                        isDeliver:
-                                            room.lastMessage.deliveredAt !=
-                                                null,
-                                        emitStatus: room.lastMessage.emitStatus,
-                                        isMeSender: room.lastMessage.isMeSender,
-                                      ),
-                                    ),
-                                    //grey
-                                    Flexible(
-                                      child: RoomItemMsg(
-                                        messageHasBeenDeletedLabel:
-                                            S.of(context).messageHasBeenDeleted,
-                                        message: room.lastMessage,
-                                        isBold: false,
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              )
-                            else if (room.isRoomUnread)
-                              //bold
-                              Flexible(
-                                child: RoomItemMsg(
-                                  isBold: true,
-                                  message: room.lastMessage,
-                                  messageHasBeenDeletedLabel:
-                                      S.of(context).messageHasBeenDeleted,
-                                ),
-                              )
-                            else
-                              //normal gray
-                              Flexible(
-                                child: RoomItemMsg(
-                                  isBold: false,
-                                  messageHasBeenDeletedLabel:
-                                      S.of(context).messageHasBeenDeleted,
-                                  message: room.lastMessage,
-                                ),
+                                child: ChatTitle(title: widget.room.realTitle),
                               ),
-                            Row(
-                              children: [
-                                Visibility(
-                                  visible: room.isRoomUnread,
-                                  child: MentionIcon(
-                                    mentionsCount: room.mentionsCount,
-                                    isMeSender: room.lastMessage.isMeSender,
+                              ChatLastMsgTime(
+                                yesterdayLabel: S.of(context).yesterday,
+                                lastMessageTime: widget.room.lastMessageTime,
+                              )
+                            ],
+                          ),
+                          const SizedBox.shrink(),
+
+                          ///message and icons
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              if (_roomTypingText(widget.room.typingStatus) !=
+                                  null)
+                                ChatTypingWidget(
+                                  text:
+                                      _roomTypingText(widget.room.typingStatus)!,
+                                )
+                              else if (widget.room.lastMessage.isMeSender)
+
+                                ///icon
+                                Flexible(
+                                  child: Row(
+                                    children: [
+                                      //status
+                                      MessageStatusIcon(
+                                        model: MessageStatusIconDataModel(
+                                          isAllDeleted: widget.room.lastMessage
+                                                  .allDeletedAt !=
+                                              null,
+                                          isSeen:
+                                              widget.room.lastMessage.seenAt !=
+                                                  null,
+                                          isDeliver: widget.room.lastMessage
+                                                  .deliveredAt !=
+                                              null,
+                                          emitStatus:
+                                              widget.room.lastMessage.emitStatus,
+                                          isMeSender:
+                                              widget.room.lastMessage.isMeSender,
+                                        ),
+                                      ),
+                                      //grey
+                                      Flexible(
+                                        child: RoomItemMsg(
+                                          messageHasBeenDeletedLabel:
+                                              S.of(context).messageHasBeenDeleted,
+                                          message: widget.room.lastMessage,
+                                          isBold: false,
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                )
+                              else if (widget.room.isRoomUnread)
+                                //bold
+                                Flexible(
+                                  child: RoomItemMsg(
+                                    isBold: true,
+                                    message: widget.room.lastMessage,
+                                    messageHasBeenDeletedLabel:
+                                        S.of(context).messageHasBeenDeleted,
+                                  ),
+                                )
+                              else
+                                //normal gray
+                                Flexible(
+                                  child: RoomItemMsg(
+                                    isBold: false,
+                                    messageHasBeenDeletedLabel:
+                                        S.of(context).messageHasBeenDeleted,
+                                    message: widget.room.lastMessage,
                                   ),
                                 ),
-                                ChatMuteWidget(isMuted: room.isMuted),
-                                ChatUnReadWidget(unReadCount: room.unReadCount),
-                                if (room.isOneSeen)
-                                  const Icon(
-                                    CupertinoIcons.eye,
-                                    size: 16,
-                                  )
-                              ],
-                            )
-                          ],
-                        ),
-                      ],
-                    ),
-                  )
-                ],
-              ),
+                              Row(
+                                children: [
+                                  Visibility(
+                                    visible: widget.room.isRoomUnread,
+                                    child: MentionIcon(
+                                      mentionsCount: widget.room.mentionsCount,
+                                      isMeSender:
+                                          widget.room.lastMessage.isMeSender,
+                                    ),
+                                  ),
+                                  ChatMuteWidget(isMuted: widget.room.isMuted),
+                                  ChatUnReadWidget(
+                                      unReadCount: widget.room.unReadCount),
+                                  if (widget.room.isOneSeen)
+                                    const Icon(
+                                      CupertinoIcons.eye,
+                                      size: 16,
+                                    )
+                                ],
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+        ),
       ),
     );
   }
 
   String? _roomTypingText(VSocketRoomTypingModel value) {
-    if (room.roomType.isSingle) {
+    if (widget.room.roomType.isSingle) {
       return _inSingleText(value);
     }
-    if (room.roomType.isGroup) {
+    if (widget.room.roomType.isGroup) {
       return _inGroupText(value);
     }
     return null;
@@ -216,7 +283,7 @@ class VRoomItem extends StatelessWidget {
 
   /// Converts the typing status to a localized text.
   String? _statusInText(VSocketRoomTypingModel value) {
-    switch (room.typingStatus.status) {
+    switch (widget.room.typingStatus.status) {
       case VRoomTypingEnum.stop:
         return null;
       case VRoomTypingEnum.typing:

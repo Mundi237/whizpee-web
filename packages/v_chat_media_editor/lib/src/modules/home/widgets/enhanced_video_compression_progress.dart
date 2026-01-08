@@ -442,14 +442,15 @@ class _EnhancedVideoCompressionProgressState
   Widget _buildCancelButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
+      height: 50,
       child: OutlinedButton.icon(
         onPressed: widget.onCancel,
-        icon: const Icon(Icons.close),
+        icon: const Icon(Icons.close, size: 20),
         label: Text(S.of(context).cancelCompression),
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.red.shade600,
-          side: BorderSide(color: Colors.red.shade300),
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          side: BorderSide(color: Colors.red.shade400, width: 2),
+          padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

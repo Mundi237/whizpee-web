@@ -20,6 +20,7 @@
  * SOFTWARE.
  */
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SwipeToReply extends StatefulWidget {
   const SwipeToReply({
@@ -134,25 +135,32 @@ class _SwipeToReplyState extends State<SwipeToReply>
   }
 
   void _runAnimation({required bool onRight}) {
+    HapticFeedback.selectionClick();
     _slideAnimation = Tween(
       begin: const Offset(0.0, 0.0),
-      end: Offset(onRight ? 0.1 : -0.1, 0.0),
-    ).animate(CurvedAnimation(curve: Curves.decelerate, parent: _controller));
+      end: Offset(onRight ? 0.12 : -0.12, 0.0),
+    ).animate(CurvedAnimation(curve: Curves.easeOut, parent: _controller));
     if (onRight) {
       _leftScaleAnimation = Tween(begin: 0.0, end: 1.0).animate(
-          CurvedAnimation(curve: Curves.decelerate, parent: _controller));
+          CurvedAnimation(curve: Curves.easeOut, parent: _controller));
     } else {
       _rightScaleAnimation = Tween(begin: 0.0, end: 1.0).animate(
-          CurvedAnimation(curve: Curves.decelerate, parent: _controller));
+          CurvedAnimation(curve: Curves.easeOut, parent: _controller));
     }
     _controller.forward().whenComplete(() {
       _controller.reverse().whenComplete(() {
         if (onRight) {
           _leftScaleAnimation = _controller.drive(Tween(begin: 0.0, end: 0.0));
-          if (widget.onRightSwipe != null) widget.onRightSwipe!();
+          if (widget.onRightSwipe != null) {
+            HapticFeedback.mediumImpact();
+            widget.onRightSwipe!();
+          }
         } else {
           _rightScaleAnimation = _controller.drive(Tween(begin: 0.0, end: 0.0));
-          if (widget.onLeftSwipe != null) widget.onLeftSwipe!();
+          if (widget.onLeftSwipe != null) {
+            HapticFeedback.mediumImpact();
+            widget.onLeftSwipe!();
+          }
         }
       });
     });
@@ -187,24 +195,44 @@ class ReplyIcon extends StatelessWidget {
     return Stack(
       alignment: Alignment.center,
       children: [
-        // Transform.scale(
-        //   scale: scaleAnimation.value,
-        //   child: CircleAvatar(
-        //     radius: 14,
-        //     backgroundColor:
-        //     scaleAnimation.value == 1.0 ? Colors.grey : Colors.transparent,
-        //     child: const Icon(
-        //       Icons.reply_rounded,
-        //     ),
-        //   ),
-        // ),
+        AnimatedOpacity(
+          opacity: scaleAnimation.value > 0.3 ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 100),
+          child: Transform.scale(
+            scale: scaleAnimation.value,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: (replyIconColor ?? Colors.blue).withOpacity(0.2),
+                boxShadow: scaleAnimation.value > 0.8
+                    ? [
+                        BoxShadow(
+                          color: (replyIconColor ?? Colors.blue).withOpacity(0.3),
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                        ),
+                      ]
+                    : [],
+              ),
+              child: Icon(
+                Icons.reply_rounded,
+                color: replyIconColor ?? Colors.blue,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
         SizedBox(
-          height: 25,
-          width: 25,
+          height: 40,
+          width: 40,
           child: CircularProgressIndicator(
             value: scaleAnimation.value,
             backgroundColor: Colors.transparent,
-            strokeWidth: 1.5,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              replyIconColor ?? Colors.blue,
+            ),
+            strokeWidth: 2.5,
           ),
         ),
       ],
