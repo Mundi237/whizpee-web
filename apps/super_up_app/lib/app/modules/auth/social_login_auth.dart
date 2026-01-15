@@ -16,6 +16,7 @@ import 'package:super_up/app/modules/annonces/datas/utils.dart';
 import 'package:super_up/app/modules/auth/auth_utils.dart';
 import 'package:super_up/app/modules/auth/continue_get_data/continue_get_data_screen.dart';
 import 'package:super_up/app/modules/auth/phone_login/otp_screen.dart';
+import 'package:super_up/app/modules/auth/phone_login/phone_authentication.dart';
 import 'package:super_up/app/modules/auth/waiting_list/views/waiting_list_page.dart';
 import 'package:super_up/app/modules/home/home_controller/views/home_view.dart';
 import 'package:super_up/main.dart';
@@ -190,22 +191,11 @@ class SocialLoginAuth {
         await user.updatePhotoURL(googleUser.photoUrl);
         await user.reload();
 
-        final socialUser = SocialUser(
-          authId: user.uid,
-          email: user.email,
-          name: user.displayName,
-          photo: user.photoURL,
-          identifier: user.uid,
-          type: RegisterMethod.gmail,
+        // Après login Google réussi, rediriger vers la vérification du numéro de téléphone
+        AppNavigation.toPage(
+          context,
+          const PhoneAuthentication(),
         );
-        await refreshToken();
-        await profileService.getMyProfile().then((e) async {
-          Navigator.pop(context);
-          await VAppPref.setMap(SStorageKeys.myProfile.name, e.toMap());
-          await VAppPref.setBool(SStorageKeys.isLogin.name, true);
-          _homeNav(context);
-        });
-
         return;
         // Verify if user exists in the system
         // final authRes = await authService.checkMethod(

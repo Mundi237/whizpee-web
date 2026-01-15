@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:super_up/app/core/widgets/animated_whizpee_logo.dart';
-import 'package:super_up/app/modules/auth/phone_login/phone_authentication.dart';
-import 'package:super_up/app/modules/auth/login/views/email_login_view.dart';
 import 'package:super_up/app/modules/auth/social_login_auth.dart';
 import 'package:super_up_core/super_up_core.dart';
 
@@ -59,7 +57,7 @@ class _LoginMethodSelectionState extends State<LoginMethodSelection> {
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Column(
                     children: [
-                      SizedBox(height: size.height * 0.05),
+                      SizedBox(height: size.height * 0.08),
                       Text(
                         "Bienvenue sur Whizpee",
                         textAlign: TextAlign.center,
@@ -75,7 +73,7 @@ class _LoginMethodSelectionState extends State<LoginMethodSelection> {
                           .slideY(begin: 0.3, end: 0),
                       const SizedBox(height: 16),
                       Text(
-                        "Choisissez votre méthode de connexion",
+                        "Connectez-vous avec votre compte Google",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 16,
@@ -86,82 +84,15 @@ class _LoginMethodSelectionState extends State<LoginMethodSelection> {
                           .animate()
                           .fadeIn(duration: 600.ms, delay: 400.ms)
                           .slideY(begin: 0.3, end: 0),
-                      SizedBox(height: size.height * 0.08),
-                      _buildMethodCard(
+                      SizedBox(height: size.height * 0.1),
+                      _buildGoogleButton(
                         context: context,
-                        icon: Icons.phone_android_rounded,
-                        title: "Connexion par téléphone",
-                        subtitle: "Utilisez votre numéro de téléphone",
-                        gradient: LinearGradient(
-                          colors: [
-                            AppTheme.primaryGreen,
-                            AppTheme.primaryGreen.withValues(alpha: 0.7),
-                          ],
-                        ),
-                        onTap: () {
-                          HapticFeedback.mediumImpact();
-                          context.toPage(const PhoneAuthentication());
-                        },
-                        delay: 600,
-                      ),
-                      const SizedBox(height: 20),
-                      _buildMethodCard(
-                        context: context,
-                        icon: Icons.email_outlined,
-                        title: "Connexion par email",
-                        subtitle: "Utilisez votre adresse email",
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.purple.shade600,
-                            Colors.purple.shade400,
-                          ],
-                        ),
-                        onTap: () {
-                          HapticFeedback.mediumImpact();
-                          context.toPage(const EmailLoginView());
-                        },
-                        delay: 800,
-                      ),
-                      const SizedBox(height: 32),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Divider(
-                              color: Colors.white.withValues(alpha: 0.3),
-                              thickness: 1,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              "OU",
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.5),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Divider(
-                              color: Colors.white.withValues(alpha: 0.3),
-                              thickness: 1,
-                            ),
-                          ),
-                        ],
-                      ).animate().fadeIn(duration: 600.ms, delay: 1000.ms),
-                      const SizedBox(height: 32),
-                      _buildSocialButton(
-                        context: context,
-                        icon: SvgPicture.string(
-                          googleSvgString,
-                          height: 24,
-                          width: 24,
-                        ),
-                        title: "Continuer avec Google",
                         isLoading: _isGoogleLoading,
                         onTap: _handleGoogleSignIn,
-                        delay: 1200,
-                      ),
+                      ).animate().fadeIn(duration: 600.ms, delay: 600.ms).scale(
+                            begin: const Offset(0.9, 0.9),
+                            end: const Offset(1.0, 1.0),
+                          ),
                       const SizedBox(height: 48),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -231,145 +162,63 @@ class _LoginMethodSelectionState extends State<LoginMethodSelection> {
     );
   }
 
-  Widget _buildMethodCard({
+  Widget _buildGoogleButton({
     required BuildContext context,
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Gradient gradient,
-    required VoidCallback onTap,
-    required int delay,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: gradient,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  icon,
-                  size: 32,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withValues(alpha: 0.9),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ],
-          ),
-        ),
-      ),
-    )
-        .animate()
-        .fadeIn(duration: 600.ms, delay: delay.ms)
-        .slideX(begin: 0.3, end: 0)
-        .then()
-        .shimmer(
-          duration: 2000.ms,
-          color: Colors.white.withValues(alpha: 0.1),
-        );
-  }
-
-  Widget _buildSocialButton({
-    required BuildContext context,
-    required Widget icon,
-    required String title,
     required bool isLoading,
     required VoidCallback onTap,
-    required int delay,
   }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: isLoading ? null : onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (isLoading)
-                SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              else
-                icon,
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 30,
+                offset: const Offset(0, 15),
               ),
             ],
           ),
+          child: isLoading
+              ? const Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black87),
+                    ),
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.string(
+                      googleSvgString,
+                      height: 28,
+                      width: 28,
+                    ),
+                    const SizedBox(width: 16),
+                    const Text(
+                      "Continuer avec Google",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
-    ).animate().fadeIn(duration: 600.ms, delay: delay.ms).scale(
-          begin: const Offset(0.9, 0.9),
-          end: const Offset(1.0, 1.0),
-        );
+    );
   }
 
   Future<void> _handleGoogleSignIn() async {

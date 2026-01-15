@@ -15,6 +15,7 @@ import 'package:super_up/app/modules/home/home_controller/views/home_view.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart';
 import 'package:v_platform/v_platform.dart';
+import 'package:super_up/app/core/utils/phone/contact_sync_service.dart';
 
 import '../../../core/api_service/auth/auth_api_service.dart';
 import '../../../core/api_service/profile/profile_api_service.dart';
@@ -506,6 +507,13 @@ class _OTPScreenState extends State<OTPScreen> {
             Navigator.pop(context);
             await VAppPref.setMap(SStorageKeys.myProfile.name, e.toMap());
             await VAppPref.setBool(SStorageKeys.isLogin.name, true);
+
+            // Demander la permission d'accès aux contacts avant de rediriger
+            final contactService = ContactSyncService();
+            if (contactService.isPlatformSupported) {
+              await contactService.initialize(context);
+            }
+
             _homeNav(context);
           });
           // print(result);

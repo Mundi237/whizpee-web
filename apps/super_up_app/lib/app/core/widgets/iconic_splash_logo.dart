@@ -354,7 +354,7 @@ class _IconicSplashLogoState extends State<IconicSplashLogo>
                   // Image du logo
                   Center(
                     child: Image.asset(
-                      "assets/logo.jpg",
+                      "assets/logo.png",
                       width: widget.size * 0.45,
                       height: widget.size * 0.45,
                       fit: BoxFit.cover,
