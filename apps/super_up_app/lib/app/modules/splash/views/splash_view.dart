@@ -2,7 +2,9 @@
 // All rights reserved. Use of this source code is governed by a
 // MIT license that can be found in the LICENSE file.
 
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:super_up/app/core/widgets/iconic_splash_logo.dart';
 import 'package:super_up/app/core/widgets/animated_whizpee_logo.dart';
@@ -16,25 +18,40 @@ class SplashView extends StatefulWidget {
   State<SplashView> createState() => _SplashViewState();
 }
 
-class _SplashViewState extends State<SplashView>
-    with SingleTickerProviderStateMixin {
+class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
   late final SplashController controller;
   late AnimationController _pulseController;
+  late AnimationController _floatController;
+  late AnimationController _rotateController;
 
   @override
   void initState() {
     super.initState();
+    HapticFeedback.lightImpact();
     controller = SplashController();
     controller.onInit();
+
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
+
+    _floatController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _rotateController = AnimationController(
+      duration: const Duration(milliseconds: 20000),
+      vsync: this,
+    )..repeat();
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
+    _floatController.dispose();
+    _rotateController.dispose();
     controller.onClose();
     super.dispose();
   }
@@ -67,24 +84,96 @@ class _SplashViewState extends State<SplashView>
         child: SafeArea(
           child: Stack(
             children: [
-              // Animated circles background
-              Positioned(
-                top: -100,
-                right: -100,
+              // Glassmorphism circles avec animation de rotation
+              AnimatedBuilder(
+                animation: _rotateController,
+                builder: (context, child) {
+                  return Positioned(
+                    top: -100 + (30 * _floatController.value),
+                    right: -100,
+                    child: Transform.rotate(
+                      angle: _rotateController.value * 2 * 3.14159,
+                      child: Container(
+                        width: 350,
+                        height: 350,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              AppTheme.primaryGreen.withValues(alpha: 0.15),
+                              AppTheme.primaryGreen.withValues(alpha: 0.08),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.1),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              AnimatedBuilder(
+                animation: _floatController,
+                builder: (context, child) {
+                  return Positioned(
+                    bottom: -150 - (40 * _floatController.value),
+                    left: -150,
+                    child: Transform.rotate(
+                      angle: -_rotateController.value * 1.5 * 3.14159,
+                      child: Container(
+                        width: 450,
+                        height: 450,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              Colors.purple.withValues(alpha: 0.12),
+                              Colors.purple.withValues(alpha: 0.06),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.08),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              // Glassmorphism accent cercle central
+              Center(
                 child: AnimatedBuilder(
                   animation: _pulseController,
                   builder: (context, child) {
                     return Container(
-                      width: 300,
-                      height: 300,
+                      width: 200 + (20 * _pulseController.value),
+                      height: 200 + (20 * _pulseController.value),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           colors: [
-                            AppTheme.primaryGreen.withValues(
-                                alpha: 0.2 * _pulseController.value),
-                            AppTheme.primaryGreen.withValues(
-                                alpha: 0.05 * _pulseController.value),
+                            AppTheme.primaryGreen.withValues(alpha: 0.1),
                             Colors.transparent,
                           ],
                         ),
@@ -93,32 +182,7 @@ class _SplashViewState extends State<SplashView>
                   },
                 ),
               ),
-              Positioned(
-                bottom: -150,
-                left: -150,
-                child: AnimatedBuilder(
-                  animation: _pulseController,
-                  builder: (context, child) {
-                    return Container(
-                      width: 400,
-                      height: 400,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            Colors.purple.withValues(
-                                alpha: 0.15 * (1 - _pulseController.value)),
-                            Colors.purple.withValues(
-                                alpha: 0.05 * (1 - _pulseController.value)),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              // Content
+              // Contenu principal
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -126,78 +190,190 @@ class _SplashViewState extends State<SplashView>
                     const SizedBox(),
                     Column(
                       children: [
-                        // Logo iconique RÉVOLUTIONNAIRE
-                        const IconicSplashLogo(
-                          size: 160,
-                        ),
+                        // Glassmorphism container pour le logo
+                        Container(
+                          padding: const EdgeInsets.all(32),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(32),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.white.withValues(alpha: 0.08),
+                                Colors.white.withValues(alpha: 0.03),
+                              ],
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.12),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(32),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const IconicSplashLogo(
+                                    size: 140,
+                                  ),
+                                  const SizedBox(height: 32),
+                                  const AnimatedWhizpeeLogo(
+                                    height: 48,
+                                    isCompact: false,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                            .animate()
+                            .fadeIn(duration: 600.ms, delay: 200.ms)
+                            .scale(
+                              begin: const Offset(0.85, 0.85),
+                              duration: 800.ms,
+                              curve: Curves.easeOutBack,
+                            )
+                            .shimmer(
+                              delay: 1200.ms,
+                              duration: 1500.ms,
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
                         const SizedBox(height: 48),
-                        // Logo texte avec effets sobres et élégants
-                        const AnimatedWhizpeeLogo(
-                          height: 56,
-                          isCompact: false,
-                        ),
-                        const SizedBox(height: 24),
-                        // Loading indicator amélioré
-                        SizedBox(
-                          width: 50,
-                          height: 50,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Ring extérieur
-                              SizedBox(
-                                width: 50,
-                                height: 50,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppTheme.primaryGreen
-                                        .withValues(alpha: 0.3),
+                        // Loading indicator premium avec glassmorphism
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.white.withValues(alpha: 0.1),
+                                Colors.white.withValues(alpha: 0.05),
+                              ],
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              width: 1,
+                            ),
+                          ),
+                          child: ClipOval(
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                              child: Center(
+                                child: SizedBox(
+                                  width: 50,
+                                  height: 50,
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 50,
+                                        height: 50,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          strokeCap: StrokeCap.round,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                            AppTheme.primaryGreen
+                                                .withValues(alpha: 0.4),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 38,
+                                        height: 38,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 3.5,
+                                          strokeCap: StrokeCap.round,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                            AppTheme.primaryGreen,
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        width: 12,
+                                        height: 12,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: AppTheme.primaryGreen,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: AppTheme.primaryGreen
+                                                  .withValues(alpha: 0.5),
+                                              blurRadius: 8,
+                                              spreadRadius: 2,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
-                              // Ring principal
-                              SizedBox(
-                                width: 40,
-                                height: 40,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 3,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppTheme.primaryGreen,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         )
                             .animate(
                               onPlay: (controller) => controller.repeat(),
                             )
-                            .fadeIn(duration: 400.ms, delay: 800.ms)
+                            .fadeIn(duration: 500.ms, delay: 1000.ms)
                             .scale(
-                              duration: 1000.ms,
-                              begin: const Offset(0.8, 0.8),
-                              curve: Curves.elasticOut,
+                              duration: 800.ms,
+                              begin: const Offset(0.7, 0.7),
+                              curve: Curves.easeOutBack,
                             ),
                       ],
                     ),
-                    Column(
-                      children: [
-                        ValueListenableBuilder(
-                          valueListenable: controller,
-                          builder: (context, value, child) {
-                            return Text(
-                              controller.version,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade600,
-                                fontWeight: FontWeight.w500,
+                    // Version avec glassmorphism
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      child: ValueListenableBuilder(
+                        valueListenable: controller,
+                        builder: (context, value, child) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withValues(alpha: 0.08),
+                                  Colors.white.withValues(alpha: 0.04),
+                                ],
                               ),
-                            ).animate().fadeIn(duration: 400.ms, delay: 800.ms);
-                          },
-                        ),
-                        const SizedBox(height: 24),
-                      ],
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.1),
+                                width: 1,
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                child: Text(
+                                  controller.version,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade400,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                              .animate()
+                              .fadeIn(duration: 500.ms, delay: 1200.ms)
+                              .slideY(begin: 0.3, end: 0);
+                        },
+                      ),
                     ),
                   ],
                 ),
