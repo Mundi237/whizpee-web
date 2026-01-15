@@ -192,7 +192,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
                       children: [
                         // Glassmorphism container pour le logo
                         Container(
-                          padding: const EdgeInsets.all(32),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(32),
                             gradient: LinearGradient(
@@ -323,7 +323,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
                             )
                             .fadeIn(duration: 500.ms, delay: 1000.ms)
                             .scale(
-                              duration: 800.ms,
+                              duration: 4000.ms,
                               begin: const Offset(0.7, 0.7),
                               curve: Curves.easeOutBack,
                             ),

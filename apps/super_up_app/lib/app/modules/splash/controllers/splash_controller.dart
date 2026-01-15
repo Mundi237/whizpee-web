@@ -110,7 +110,7 @@ class SplashController extends SLoadingController<String> {
       );
     }
 
-    await Future.delayed(const Duration(milliseconds: 650));
+    await Future.delayed(const Duration(seconds: 5));
 
     final isLogin = VAppPref.getBool(SStorageKeys.isLogin.name);
     if (isLogin) {
