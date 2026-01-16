@@ -323,7 +323,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
                             )
                             .fadeIn(duration: 500.ms, delay: 1000.ms)
                             .scale(
-                              duration: 4000.ms,
+                              duration: 5000.ms,
                               begin: const Offset(0.7, 0.7),
                               curve: Curves.easeOutBack,
                             ),

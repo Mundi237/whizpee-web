@@ -22,6 +22,7 @@ class AnnonceController extends ChangeNotifier {
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   TextEditingController villeController = TextEditingController();
+  TextEditingController priceController = TextEditingController();
 
   ValueNotifier<AppState<List<Annonces>>> annoncesListState =
       ValueNotifier(AppState());
@@ -174,6 +175,8 @@ class AnnonceController extends ChangeNotifier {
   void clearFields() {
     titleController.clear();
     descriptionController.clear();
+    villeController.clear();
+    priceController.clear();
     images.clear();
     selectedCategorie = null;
     notifyListeners();
@@ -188,6 +191,14 @@ class AnnonceController extends ChangeNotifier {
       return;
     }
 
+    // Validation des images
+    final finalImages = images ?? this.images;
+    if (finalImages.isEmpty) {
+      VAppAlert.showErrorSnackBar(
+          message: "Veuillez ajouter au moins une image", context: context);
+      return;
+    }
+
     annonceState.value = AppState.loading();
     notifyListeners();
     try {
@@ -195,9 +206,10 @@ class AnnonceController extends ChangeNotifier {
         title: titleController.text,
         description: descriptionController.text,
         categorieId: selectedCategorie?.id.toString() ?? '',
-        images: images ?? this.images,
+        images: finalImages,
         quartier: quartier,
         ville: villeController.text,
+        price: priceController.text.isNotEmpty ? priceController.text : null,
       );
       annonceState.value = AppState.completed(annonce);
       getAnnonces(true);

@@ -649,6 +649,17 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage> {
                       ),
                       const SizedBox(height: 20),
                       CustomTextField(
+                        label: 'Prix (XAF)',
+                        hint: 'Entrez le prix en FCFA',
+                        keyboardType: TextInputType.number,
+                        controller: annonceController.priceController,
+                        validator: (val) {
+                          // Prix est optionnel selon l'API
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      CustomTextField(
                         label: 'Quartier',
                         hint: 'Sélectionnez une quartier',
                         controller: quarterController,
@@ -688,6 +699,27 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage> {
                             color: Colors.grey.shade500),
                       ),
                       const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Text(
+                            'Images *',
+                            style: TextStyle(
+                              // color: white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '(Au moins une image requise)',
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
                       _buildImagePicker(),
                       const SizedBox(height: 20),
                       ValueListenableBuilder(
@@ -696,6 +728,16 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage> {
                             return ElevatedButton(
                               onPressed: () async {
                                 if (formKey.currentState!.validate()) {
+                                  // Validation supplémentaire pour les images
+                                  if (_images.isEmpty) {
+                                    VAppAlert.showErrorSnackBar(
+                                      message:
+                                          "Veuillez ajouter au moins une image pour créer une annonce",
+                                      context: context,
+                                    );
+                                    return;
+                                  }
+
                                   await annonceController.createAnnonce(
                                     context,
                                     images: _images,

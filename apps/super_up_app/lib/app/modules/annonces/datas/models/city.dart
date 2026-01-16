@@ -2,7 +2,7 @@ import 'dart:convert';
 
 class City {
   final String name;
-  final int id;
+  final String id;
   City({
     required this.name,
     required this.id,
@@ -10,7 +10,7 @@ class City {
 
   City copyWith({
     String? name,
-    int? id,
+    String? id,
   }) {
     return City(
       name: name ?? this.name,
@@ -28,7 +28,7 @@ class City {
   factory City.fromMap(Map<String, dynamic> map) {
     return City(
       name: map['name'] as String,
-      id: map['id'] as int,
+      id: map['id'] as String,
     );
   }
 

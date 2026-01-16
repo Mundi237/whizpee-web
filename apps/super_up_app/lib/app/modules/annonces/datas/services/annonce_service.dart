@@ -18,6 +18,7 @@ class AnnonceService {
     required List<File> images,
     required String ville,
     required String quartier,
+    String? price,
   }) async {
     try {
       final imagesData = await Future.wait(images
@@ -26,14 +27,22 @@ class AnnonceService {
                 filename: '${DateTime.now().millisecondsSinceEpoch}.png'),
           )
           .toList());
-      final FormData data = FormData.fromMap({
+
+      final Map<String, dynamic> formDataMap = {
         'title': title,
         "category": categorieId,
         "description": description,
         "images": imagesData,
         "ville": ville,
         "quartier": quartier
-      });
+      };
+
+      // Ajouter le prix seulement s'il est fourni (champ optionnel)
+      if (price != null && price.isNotEmpty) {
+        formDataMap["price"] = price;
+      }
+
+      final FormData data = FormData.fromMap(formDataMap);
       final result = await dio.request(
         "/annonces",
         data: data,
