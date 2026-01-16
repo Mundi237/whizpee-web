@@ -30,6 +30,10 @@ class _RoomsTabViewState extends State<RoomsTabView> {
     super.initState();
     controller = GetIt.I.get<RoomsTabController>();
     controller.onInit();
+
+    // Debug: Vérifier la configuration
+    print('📋 Config allowCreateGroup: ${config.allowCreateGroup}');
+    print('📋 Config allowCreateBroadcast: ${config.allowCreateBroadcast}');
   }
 
   @override
@@ -128,19 +132,22 @@ class _RoomsTabViewState extends State<RoomsTabView> {
         },
         body: VChatPage(
           language: vRoomLanguageModel(context),
-          onCreateNewBroadcast: config.allowCreateBroadcast
-              ? () {
-                  controller.createNewBroadcast(this.context);
-                }
-              : null,
-          onSearchClicked: () {
-            controller.onSearchClicked(this.context);
+          onCreateNewChat: () {
+            print('🔵 onCreateNewChat tapped');
+            controller.createNewChat(context);
           },
-          onCreateNewGroup: config.allowCreateGroup
-              ? () {
-                  controller.createNewGroup(this.context);
-                }
-              : null,
+          onCreateNewBroadcast: () {
+            print('🔵 onCreateNewBroadcast tapped');
+            controller.createNewBroadcast(context);
+          },
+          onSearchClicked: () {
+            print('🔵 onSearchClicked tapped');
+            controller.onSearchClicked(context);
+          },
+          onCreateNewGroup: () {
+            print('🔵 onCreateNewGroup tapped');
+            controller.createNewGroup(context);
+          },
           appBar: null,
           showDisconnectedWidget: false,
           controller: controller.vRoomController,

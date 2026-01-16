@@ -11,6 +11,15 @@ class ChatsSearchController extends SLoadingController<List<VRoom>> {
   final searchController = TextEditingController();
   final searchFocusNode = FocusNode();
 
+  // Filtre par type de room
+  VRoomType? selectedRoomType;
+
+  void setRoomTypeFilter(VRoomType? type) {
+    selectedRoomType = type;
+    // Relancer la recherche avec le filtre
+    onSearch(searchController.text);
+  }
+
   @override
   void onInit() {
     searchFocusNode.requestFocus();
@@ -23,7 +32,7 @@ class ChatsSearchController extends SLoadingController<List<VRoom>> {
   }
 
   void onSearch(String query) async {
-    if (query.isEmpty) {
+    if (query.isEmpty && selectedRoomType == null) {
       value.data = [];
       return;
     }
@@ -32,7 +41,28 @@ class ChatsSearchController extends SLoadingController<List<VRoom>> {
         setStateLoading();
       },
       request: () async {
-        return VChatController.I.nativeApi.local.room.searchRoom(text: query);
+        final results = await VChatController.I.nativeApi.local.room
+            .searchRoom(text: query);
+
+        // Appliquer le filtre par type si défini
+        if (selectedRoomType != null) {
+          return results.where((room) {
+            switch (selectedRoomType) {
+              case VRoomType.s:
+                return room.roomType.isSingle;
+              case VRoomType.g:
+                return room.roomType.isGroup;
+              case VRoomType.b:
+                return room.roomType.isBroadcast;
+              case VRoomType.a:
+                return room.isCta;
+              default:
+                return true;
+            }
+          }).toList();
+        }
+
+        return results;
       },
       onSuccess: (response) {
         value.data = response;

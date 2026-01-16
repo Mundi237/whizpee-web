@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:super_up/app/modules/annonces/datas/models/city.dart';
 import 'package:super_up/app/modules/annonces/datas/utils.dart';
+import 'package:super_up/app/modules/annonces/cores/error_handler.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart' show Annonces;
 
@@ -121,6 +122,12 @@ class AnnonceService {
       final response =
           await dio.post("/annonces/$annonceId/start-conversation");
       Utils.printLog(response.data);
+
+      // Validation: s'assurer que la réponse n'est pas null
+      if (response.data == null) {
+        throw CustomException(message: "Réponse serveur invalide");
+      }
+
       return response.data;
     } catch (e) {
       Utils.loggerError(e);

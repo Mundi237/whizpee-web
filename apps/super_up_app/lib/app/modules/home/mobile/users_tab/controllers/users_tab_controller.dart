@@ -70,10 +70,28 @@ class UsersTabController extends SLoadingController<List<SSearchUser>> {
     );
   }
 
-  void onItemPress(SSearchUser item, BuildContext context) {
-    context.toPage(PeerProfileView(
-      peerId: item.baseUser.id,
-    ));
+  void onItemPress(SSearchUser item, BuildContext context) async {
+    // Créer ou récupérer la room pour ce contact
+    try {
+      final room = await VChatController.I.roomApi.getPeerRoom(
+        peerId: item.baseUser.id,
+      );
+
+      if (!context.mounted) return;
+
+      // Ouvrir la conversation
+      VChatController.I.vNavigator.messageNavigator
+          .toMessagePage(context, room);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error creating/getting peer room: $e');
+      }
+      // En cas d'erreur, ouvrir le profil
+      if (!context.mounted) return;
+      context.toPage(PeerProfileView(
+        peerId: item.baseUser.id,
+      ));
+    }
   }
 
   Future<bool> onLoadMore() async {
@@ -154,7 +172,7 @@ class UsersTabController extends SLoadingController<List<SSearchUser>> {
       final fullName = user.baseUser.fullName.toLowerCase();
       final bio = user.getUserBio?.toLowerCase() ?? '';
       final searchTerm = query.toLowerCase();
-      
+
       return fullName.contains(searchTerm) || bio.contains(searchTerm);
     }).toList();
 
@@ -166,10 +184,10 @@ class UsersTabController extends SLoadingController<List<SSearchUser>> {
 
   void onSearchChanged(String query) {
     _currentSearchQuery = query;
-    
+
     // Perform instant local search
     _performLocalSearch(query);
-    
+
     // Debounce API search for more comprehensive results
     if (_debounce?.isActive ?? false) _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 800), () async {
@@ -247,9 +265,9 @@ class UsersTabController extends SLoadingController<List<SSearchUser>> {
       await contactService.initialize(navigatorKey.currentState!.context);
       value.data = [];
       update();
-       getData();
+      getData();
       VAppAlert.showSuccessSnackBar(
-        message:S.current.contactsHasBeenSynced,
+        message: S.current.contactsHasBeenSynced,
         context: navigatorKey.currentState!.context,
       );
     }

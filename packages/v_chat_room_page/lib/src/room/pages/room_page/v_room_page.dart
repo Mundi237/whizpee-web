@@ -36,6 +36,7 @@ class VChatPage extends StatefulWidget {
     required this.controller,
     required this.onCreateNewBroadcast,
     required this.onCreateNewGroup,
+    this.onCreateNewChat,
     this.appBar,
     required this.language,
     required this.onSearchClicked,
@@ -51,6 +52,7 @@ class VChatPage extends StatefulWidget {
   final VRoomLanguage language;
   final bool useIconForRoomItem;
   final GestureTapCallback? onCreateNewGroup;
+  final GestureTapCallback? onCreateNewChat;
   final GestureTapCallback onSearchClicked;
   final GestureTapCallback? onCreateNewBroadcast;
 
@@ -68,8 +70,10 @@ class _VChatPageState extends State<VChatPage> {
   String tab = "All";
   List<String> tabs = [
     'All',
+    "Contacts",
     "CTA",
     "Groups",
+    "Broadcasts",
   ];
 
   @override
@@ -166,6 +170,28 @@ class _VChatPageState extends State<VChatPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 TextButton(
+                                  onPressed: widget.onCreateNewChat,
+                                  style: ButtonStyle(
+                                    padding: WidgetStateProperty.all(
+                                      const EdgeInsets.symmetric(
+                                        horizontal: 0,
+                                        vertical: 5,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'New chat',
+                                    style: CupertinoTheme.of(context)
+                                        .textTheme
+                                        .textStyle
+                                        .copyWith(
+                                          color: widget.onCreateNewChat == null
+                                              ? Colors.grey
+                                              : Colors.blue,
+                                        ),
+                                  ),
+                                ),
+                                TextButton(
                                   onPressed: widget.onCreateNewGroup,
                                   style: ButtonStyle(
                                     padding: WidgetStateProperty.all(
@@ -213,38 +239,45 @@ class _VChatPageState extends State<VChatPage> {
                               ],
                             ),
                             const SizedBox(height: 5),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                ...tabs.map(
-                                  (tab) => InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        this.tab = tab;
-                                      });
-                                    },
-                                    child: AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 700),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 1, horizontal: 20),
-                                      margin: const EdgeInsets.only(right: 10),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),
-                                        color: this.tab == tab
-                                            ? Colors.grey.shade600
-                                            : Colors.grey.shade900,
-                                      ),
-                                      child: Text(
-                                        tab,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w700,
+                            SizedBox(
+                              height: 35,
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: [
+                                  ...tabs.map(
+                                    (tab) => InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          this.tab = tab;
+                                        });
+                                      },
+                                      child: AnimatedContainer(
+                                        duration:
+                                            const Duration(milliseconds: 700),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 6, horizontal: 16),
+                                        margin: const EdgeInsets.only(right: 8),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          color: this.tab == tab
+                                              ? Colors.grey.shade600
+                                              : Colors.grey.shade900,
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            tab,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 13,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                )
-                              ],
+                                  )
+                                ],
+                              ),
                             ),
                             const SizedBox(
                               height: 5,
@@ -262,11 +295,42 @@ class _VChatPageState extends State<VChatPage> {
                             .where((e) => e.id == room.id),
                         initialData: room,
                         builder: (context, snapshot) {
-                          final vRommWidget = VRoomItem(
+                          final currentRoom = snapshot.data!;
+
+                          // Logique de filtrage améliorée
+                          bool shouldShow = false;
+
+                          switch (tab) {
+                            case "All":
+                              shouldShow = true;
+                              break;
+                            case "Contacts":
+                              // Afficher uniquement les chats single (one-to-one)
+                              shouldShow = currentRoom.roomType.isSingle;
+                              break;
+                            case "CTA":
+                              // Afficher uniquement les rooms CTA (annonces)
+                              shouldShow = currentRoom.isCta;
+                              break;
+                            case "Groups":
+                              // Afficher uniquement les groupes
+                              shouldShow = currentRoom.roomType.isGroup;
+                              break;
+                            case "Broadcasts":
+                              // Afficher uniquement les broadcasts
+                              shouldShow = currentRoom.roomType.isBroadcast;
+                              break;
+                          }
+
+                          if (!shouldShow) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return VRoomItem(
                             isIconOnly: widget.useIconForRoomItem,
-                            isSelected: snapshot.data!.id ==
+                            isSelected: currentRoom.id ==
                                 widget.controller.selectedRoomId,
-                            room: snapshot.data!,
+                            room: currentRoom,
                             onRoomItemLongPress: (room) => widget.controller
                                 ._onRoomItemLongPress(room, context),
                             onRoomItemPress: (room) {
@@ -278,17 +342,6 @@ class _VChatPageState extends State<VChatPage> {
                               }
                             },
                           );
-
-                          if (room.isCta && tab == "CTA") {
-                            return vRommWidget;
-                          }
-                          if (!room.isCta && tab == "CTA") {
-                            return const SizedBox.shrink();
-                          }
-                          if (!room.isCta && tab != "CTA") {
-                            return vRommWidget;
-                          }
-                          return const SizedBox.shrink();
                         },
                       );
                     },

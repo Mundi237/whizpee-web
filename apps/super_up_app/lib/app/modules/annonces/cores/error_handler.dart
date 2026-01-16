@@ -80,9 +80,24 @@ ErrorModel manageDioError(DioException except) {
 
   switch (code) {
     case 400:
+      // Vérifier d'abord si le message est dans 'data' (cas de l'API conversation)
+      if (except.response?.data['data'] != null) {
+        return ErrorModel.fromMap({
+          'error': except.response?.data['data'],
+          'code': code,
+        });
+      }
+      // Ensuite vérifier 'error_message' (autre format)
       if (except.response?.data['error_message'] != null) {
         return ErrorModel.fromMap({
           'error': except.response?.data['error_message'],
+          'code': code,
+        });
+      }
+      // Enfin vérifier 'error' (format standard)
+      if (except.response?.data['error'] != null) {
+        return ErrorModel.fromMap({
+          'error': except.response?.data['error'],
           'code': code,
         });
       }

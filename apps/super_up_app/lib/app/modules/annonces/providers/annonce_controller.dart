@@ -2,13 +2,16 @@ import 'dart:io';
 
 import 'package:diacritic/diacritic.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:s_translation/generated/l10n.dart';
 import 'package:super_up/app/modules/annonces/cores/appstate.dart';
-import 'package:super_up/app/modules/annonces/cores/error_handler.dart';
 import 'package:super_up/app/modules/annonces/datas/models/city.dart';
 import 'package:super_up/app/modules/annonces/datas/services/annonce_service.dart';
 import 'package:super_up/app/modules/annonces/datas/utils.dart';
 import 'package:super_up/app/modules/annonces/presentation/announcement_detail_page.dart';
+import 'package:super_up/app/modules/annonces/presentation/credit_pay_bottom_sheet.dart';
+import 'package:super_up/app/modules/annonces/providers/credit_provider.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart'
     show Annonces, Categorie, VRoom;
@@ -115,18 +118,136 @@ class AnnonceController extends ChangeNotifier {
 
   Future<VRoom?> createConversation(
       String annonceId, BuildContext context) async {
+    // Vérifier le solde avant de créer la conversation
+    final creditProvider = GetIt.I.get<CreditProvider>();
+
+    // Charger le solde si non disponible
+    if (creditProvider.wallet.value.data == null) {
+      await creditProvider.getWallet();
+    }
+
+    // Vérifier si l'utilisateur a au moins 10 crédits
+    final currentCredits =
+        creditProvider.wallet.value.data?.credits.toInt() ?? 0;
+    if (currentCredits < 10) {
+      // Afficher dialog proposant l'achat de crédits
+      final shouldBuy = await VAppAlert.showAskYesNoDialog(
+        context: context,
+        title: "Crédits insuffisants",
+        content:
+            "Vous avez besoin de 10 crédits pour contacter cet annonceur. Votre solde actuel est de $currentCredits crédits. Souhaitez-vous acheter des crédits maintenant?",
+      );
+
+      if (shouldBuy == 1) {
+        // Ouvrir le bottom sheet d'achat de crédits
+        await _showCreditPurchaseBottomSheet(context, creditProvider);
+        return null;
+      }
+      return null;
+    }
+
     try {
       final result = await annonceService.createConversation(annonceId);
       Utils.printLog(result);
-      return VRoom.fromMap(result);
+
+      // Validation: vérifier que result n'est pas null et contient les champs requis
+      if (result == null) {
+        VAppAlert.showOkAlertDialog(
+            context: context,
+            title: S.of(context).error,
+            content: "Réponse invalide du serveur");
+        return null;
+      }
+
+      // Validation: vérifier les champs requis pour VRoom.fromMap
+      // L'API retourne: roomId, title, image au lieu de rId, t, img
+      if (result['roomId'] == null ||
+          result['title'] == null ||
+          result['image'] == null) {
+        Utils.printLog("Champs manquants dans la réponse API:");
+        Utils.printLog("roomId: ${result['roomId']}");
+        Utils.printLog("title: ${result['title']}");
+        Utils.printLog("image: ${result['image']}");
+        VAppAlert.showOkAlertDialog(
+            context: context,
+            title: S.of(context).error,
+            content: "Données de conversation incomplètes");
+        return null;
+      }
+
+      // Mapper la structure API vers la structure attendue par VRoom.fromMap
+      Map<String, dynamic> vRoomMap = {
+        'rId': result['roomId'], // roomId -> rId
+        't': result['title'], // title -> t
+        'img': result['image'], // image -> img
+        'tTo': null, // transTo (optionnel)
+        'mentionsCount': 0, // mentionsCount (par défaut)
+        'isA': false, // isArchived (par défaut)
+        'isOneSeen': false, // isOneSeen (par défaut)
+        'rT': 's', // roomType: 's' pour single (pas "single")
+        'createdAt': result['createdAt'] ?? DateTime.now().toIso8601String(),
+        'uC': 0, // unReadCount (par défaut)
+        'isM': false, // isMuted (par défaut)
+        'isD': false, // isDeleted (par défaut)
+        'nTitle': null, // nickName (optionnel)
+        'pId': result['announcementOwnerId'], // peerId
+      };
+
+      return VRoom.fromMap(vRoomMap);
     } catch (e) {
       Utils.logger(e.toString());
-      VAppAlert.showOkAlertDialog(
+
+      // Gérer l'erreur 400 (solde insuffisant)
+      if (e.toString().contains('400') ||
+          e.toString().toLowerCase().contains('insufficient')) {
+        final shouldBuy = await VAppAlert.showAskYesNoDialog(
           context: context,
-          title: S.of(context).error,
-          content: returnError(e).error);
+          title: "Crédits insuffisants",
+          content:
+              "Vous n'avez pas assez de crédits pour contacter cet annonceur. Souhaitez-vous acheter des crédits maintenant?",
+        );
+
+        if (shouldBuy == 1) {
+          final creditProvider = GetIt.I.get<CreditProvider>();
+          await _showCreditPurchaseBottomSheet(context, creditProvider);
+        }
+      } else {
+        VAppAlert.showOkAlertDialog(
+            context: context,
+            title: S.of(context).error,
+            content:
+                "Une erreur est survenue lors de la création de la conversation");
+      }
       return null;
     }
+  }
+
+  // Méthode helper pour afficher le bottom sheet d'achat de crédits
+  Future<void> _showCreditPurchaseBottomSheet(
+      BuildContext context, CreditProvider creditProvider) async {
+    // Charger les packages si nécessaire
+    if (creditProvider.packagesList.value.data == null ||
+        (creditProvider.packagesList.value.data ?? []).isEmpty) {
+      await creditProvider.fetchPackages();
+    }
+
+    if (!context.mounted) return;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: const CreditPayBottomSheet(),
+      ),
+    );
   }
 
   searchVille(String val) {

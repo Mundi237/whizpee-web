@@ -6,7 +6,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:loadmore/loadmore.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:s_translation/generated/l10n.dart';
 import 'package:v_platform/v_platform.dart';
@@ -104,7 +103,8 @@ class _ChooseMembersViewState extends State<ChooseMembersView> {
                 child: CupertinoSearchTextField(
                   controller: controller.txtController,
                   onChanged: controller.onSearchChanged,
-                  placeholder: controller.contactService.getSearchLabelForUsersSearch(),
+                  placeholder:
+                      controller.contactService.getSearchLabelForUsersSearch(),
                 ),
               ),
               const SizedBox(
@@ -156,13 +156,16 @@ class _ChooseMembersViewState extends State<ChooseMembersView> {
                                   )
                                 ],
                               ),
-                              controller.selectedUsers[index].searchUser
-                                  .baseUser.fullName
-                                  .split(" ")
-                                  .first
-                                  .text
-                                  .size(13)
-                                  .color(Colors.grey)
+                              Text(
+                                controller.selectedUsers[index].searchUser
+                                    .baseUser.fullName
+                                    .split(" ")
+                                    .first,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ],
                           );
                         },
@@ -173,19 +176,19 @@ class _ChooseMembersViewState extends State<ChooseMembersView> {
                   elseBuilder: () => const SizedBox.shrink(),
                 ),
               ),
-              ValueListenableBuilder<SLoadingState<List<SSelectableUser>>>(
-                valueListenable: controller,
-                builder: (_, value, ___) => VAsyncWidgetsBuilder(
-                  loadingState: value.loadingState,
-                  onRefresh: controller.getData,
-                  successWidget: () {
-                    return Expanded(
-                      child: LoadMore(
+              Expanded(
+                child: ValueListenableBuilder<
+                    SLoadingState<List<SSelectableUser>>>(
+                  valueListenable: controller,
+                  builder: (_, value, ___) => VAsyncWidgetsBuilder(
+                    loadingState: value.loadingState,
+                    onRefresh: controller.getData,
+                    successWidget: () {
+                      return LoadMore(
                         onLoadMore: controller.onLoadMore,
                         isFinish: controller.isFinishLoadMore,
                         textBuilder: (status) => "",
                         child: ListView.separated(
-                          controller: ModalScrollController.of(context),
                           padding: const EdgeInsets.all(5),
                           separatorBuilder: (context, index) => Divider(
                             height: 10,
@@ -222,16 +225,21 @@ class _ChooseMembersViewState extends State<ChooseMembersView> {
                                   const SizedBox(
                                     width: 15,
                                   ),
-                                  item.searchUser.baseUser.fullName.text,
+                                  Expanded(
+                                    child: Text(
+                                      item.searchUser.baseUser.fullName,
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                  ),
                                 ],
                               ),
                             );
                           },
                           itemCount: value.data.length,
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ],

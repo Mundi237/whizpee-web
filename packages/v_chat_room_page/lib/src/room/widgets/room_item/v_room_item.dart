@@ -157,9 +157,40 @@ class _VRoomItemState extends State<VRoomItem>
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Flexible(
-                                child: ChatTitle(title: widget.room.realTitle),
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Flexible(
+                                      child: ChatTitle(
+                                          title: widget.room.realTitle),
+                                    ),
+                                    // Badge pour les rooms CTA (annonces)
+                                    if (widget.room.isCta) ...[
+                                      const SizedBox(width: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                          vertical: 1,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.amber.shade700,
+                                          borderRadius:
+                                              BorderRadius.circular(3),
+                                        ),
+                                        child: const Text(
+                                          'CTA',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 4),
                               ChatLastMsgTime(
                                 yesterdayLabel: S.of(context).yesterday,
                                 lastMessageTime: widget.room.lastMessageTime,
@@ -175,8 +206,8 @@ class _VRoomItemState extends State<VRoomItem>
                               if (_roomTypingText(widget.room.typingStatus) !=
                                   null)
                                 ChatTypingWidget(
-                                  text:
-                                      _roomTypingText(widget.room.typingStatus)!,
+                                  text: _roomTypingText(
+                                      widget.room.typingStatus)!,
                                 )
                               else if (widget.room.lastMessage.isMeSender)
 
@@ -196,17 +227,18 @@ class _VRoomItemState extends State<VRoomItem>
                                           isDeliver: widget.room.lastMessage
                                                   .deliveredAt !=
                                               null,
-                                          emitStatus:
-                                              widget.room.lastMessage.emitStatus,
-                                          isMeSender:
-                                              widget.room.lastMessage.isMeSender,
+                                          emitStatus: widget
+                                              .room.lastMessage.emitStatus,
+                                          isMeSender: widget
+                                              .room.lastMessage.isMeSender,
                                         ),
                                       ),
                                       //grey
                                       Flexible(
                                         child: RoomItemMsg(
-                                          messageHasBeenDeletedLabel:
-                                              S.of(context).messageHasBeenDeleted,
+                                          messageHasBeenDeletedLabel: S
+                                              .of(context)
+                                              .messageHasBeenDeleted,
                                           message: widget.room.lastMessage,
                                           isBold: false,
                                         ),
