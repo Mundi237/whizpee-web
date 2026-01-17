@@ -10,6 +10,7 @@ class Annonces {
   final String description;
   final Categorie? categorie;
   final String? categorieId;
+  final Categorie? categoryInfo;
   final List<String>? images;
   final DateTime createdAt;
   final dynamic location;
@@ -22,6 +23,8 @@ class Annonces {
   final String? status;
   final int views;
   final Boost? boostTypeId;
+  final Boost? boostType;
+  final int price;
   Annonces({
     required this.title,
     required this.description,
@@ -31,6 +34,7 @@ class Annonces {
     this.location,
     this.categorie,
     this.categorieId,
+    this.categoryInfo,
     this.images,
     this.ville,
     this.quartier,
@@ -40,6 +44,8 @@ class Annonces {
     this.userId,
     this.views = 0,
     this.boostTypeId,
+    this.boostType,
+    this.price = 0,
   });
 
   Map<String, dynamic> toMap() {
@@ -60,6 +66,9 @@ class Annonces {
       'status': status,
       'views': views,
       'boostTypeId': boostTypeId?.toJson(),
+      'boostType': boostType?.toJson(),
+      'categoryInfo': categoryInfo?.toMap(),
+      'price': price,
     };
   }
 
@@ -76,9 +85,14 @@ class Annonces {
         categorie: map['categorie'] is Map
             ? Categorie.fromMap(map['categorie'])
             : null,
+        categoryInfo: map['categoryInfo'] is Map
+            ? Categorie.fromMap(map['categoryInfo'])
+            : null,
         boostTypeId: map['boostTypeId'] is Map
             ? Boost.fromJson(map['boostTypeId'])
             : null,
+        boostType:
+            map['boostType'] is Map ? Boost.fromJson(map['boostType']) : null,
         categorieId: map['categorie'] is Map
             ? map['categorie']['_id']
             : map['categorie'],
@@ -95,11 +109,13 @@ class Annonces {
             ? DateTime.tryParse(map['boostedUntil'])
             : null,
         status: map['status'],
-        views: int.tryParse(map['views'].toString()) ?? 0);
+        views: int.tryParse(map['views'].toString()) ?? 0,
+        price: int.tryParse(map['price'].toString()) ?? 0);
   }
 
   bool get isMine => user?.id == AppAuth.myId;
   bool get isPublished => status == "published";
+  bool get isLiked => false; // Champ non disponible dans l'API pour l'instant
 
   @override
   String toString() {
@@ -131,6 +147,8 @@ class Annonces {
     String? ville,
     String? quartier,
     int? views,
+    int? price,
+    bool? isLiked,
   }) {
     return Annonces(
       id: id ?? this.id,
@@ -145,6 +163,7 @@ class Annonces {
       ville: ville ?? this.ville,
       quartier: quartier ?? this.quartier,
       views: views ?? this.views,
+      price: price ?? this.price,
     );
   }
 }

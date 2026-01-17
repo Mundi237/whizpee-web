@@ -23,6 +23,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _floatController;
   late AnimationController _rotateController;
+  late AnimationController _waveController;
 
   @override
   void initState() {
@@ -45,6 +46,11 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 20000),
       vsync: this,
     )..repeat();
+
+    _waveController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    )..repeat();
   }
 
   @override
@@ -52,6 +58,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
     _pulseController.dispose();
     _floatController.dispose();
     _rotateController.dispose();
+    _waveController.dispose();
     controller.onClose();
     super.dispose();
   }
@@ -161,28 +168,83 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
                   );
                 },
               ),
-              // Glassmorphism accent cercle central
-              Center(
-                child: AnimatedBuilder(
-                  animation: _pulseController,
-                  builder: (context, child) {
-                    return Container(
-                      width: 200 + (20 * _pulseController.value),
-                      height: 200 + (20 * _pulseController.value),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            AppTheme.primaryGreen.withValues(alpha: 0.1),
-                            Colors.transparent,
-                          ],
+              // Animation d'onde qui se propage depuis le centre
+              AnimatedBuilder(
+                animation: _waveController,
+                builder: (context, child) {
+                  return Positioned.fill(
+                    child: Center(
+                      child: Container(
+                        width: MediaQuery.of(context).size.width *
+                            (0.5 + _waveController.value * 2.5),
+                        height: MediaQuery.of(context).size.width *
+                            (0.5 + _waveController.value * 2.5),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              AppTheme.primaryGreen.withValues(
+                                alpha: (0.3 - _waveController.value * 0.28)
+                                    .clamp(0.0, 0.3),
+                              ),
+                              AppTheme.primaryGreen.withValues(
+                                alpha: (0.15 - _waveController.value * 0.14)
+                                    .clamp(0.0, 0.15),
+                              ),
+                              Colors.transparent,
+                            ],
+                          ),
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
-              // Contenu principal
+
+              // Animation d'onde secondaire avec décalage
+              AnimatedBuilder(
+                animation: _waveController,
+                builder: (context, child) {
+                  return Positioned.fill(
+                    child: Center(
+                      child: Container(
+                        width: MediaQuery.of(context).size.width *
+                            (0.3 +
+                                (_waveController.value - 0.3).clamp(0.0, 1.0) *
+                                    2.5),
+                        height: MediaQuery.of(context).size.width *
+                            (0.3 +
+                                (_waveController.value - 0.3).clamp(0.0, 1.0) *
+                                    2.5),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              Colors.purple.withValues(
+                                alpha: (0.2 -
+                                        (_waveController.value - 0.3)
+                                                .clamp(0.0, 1.0) *
+                                            0.18)
+                                    .clamp(0.0, 0.2),
+                              ),
+                              Colors.purple.withValues(
+                                alpha: (0.1 -
+                                        (_waveController.value - 0.3)
+                                                .clamp(0.0, 1.0) *
+                                            0.09)
+                                    .clamp(0.0, 0.1),
+                              ),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              // Contenu principal sans cadre
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -190,43 +252,9 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
                     const SizedBox(),
                     Column(
                       children: [
-                        // Glassmorphism container pour le logo
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(32),
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.white.withValues(alpha: 0.08),
-                                Colors.white.withValues(alpha: 0.03),
-                              ],
-                            ),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.12),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(32),
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const IconicSplashLogo(
-                                    size: 140,
-                                  ),
-                                  const SizedBox(height: 32),
-                                  const AnimatedWhizpeeLogo(
-                                    height: 48,
-                                    isCompact: false,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                        // Logo sans cadre, directement avec animation
+                        const IconicSplashLogo(
+                          size: 140,
                         )
                             .animate()
                             .fadeIn(duration: 600.ms, delay: 200.ms)
@@ -240,6 +268,14 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
                               duration: 1500.ms,
                               color: Colors.white.withValues(alpha: 0.1),
                             ),
+                        const SizedBox(height: 32),
+                        const AnimatedWhizpeeLogo(
+                          height: 48,
+                          isCompact: false,
+                        )
+                            .animate()
+                            .fadeIn(duration: 600.ms, delay: 400.ms)
+                            .slideY(begin: 0.2, end: 0),
                         const SizedBox(height: 48),
                         // Loading indicator premium avec glassmorphism
                         Container(

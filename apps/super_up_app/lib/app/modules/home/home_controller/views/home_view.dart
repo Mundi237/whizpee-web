@@ -4,6 +4,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:super_up/app/modules/annonces/presentation/announcements_page.dart';
 import 'package:super_up/app/modules/annonces/presentation/create_announcement_page.dart';
@@ -31,10 +32,31 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   late final HomeController controller;
   final sizer = GetIt.I.get<AppSizeHelper>();
+  late AnimationController _floatController;
+  late AnimationController _pulseController;
+  late AnimationController _badgeController;
+  late CupertinoTabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _floatController = AnimationController(
+      duration: const Duration(milliseconds: 3500),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _badgeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _tabController = CupertinoTabController(initialIndex: 0);
+    _tabController.addListener(_onTabChanged);
     controller = HomeController(
       GetIt.I.get<ProfileApiService>(),
       context,
@@ -42,8 +64,29 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     controller.onInit();
   }
 
+  void _onTabChanged() {
+    HapticFeedback.selectionClick();
+
+    // Pulse animation pour le nouvel onglet actif
+    _pulseController.forward().then((_) {
+      _pulseController.reverse();
+    });
+
+    // Badge bounce animation si notification
+    if (_tabController.index == 1 && controller.totalChatUnRead > 0) {
+      _badgeController.forward().then((_) {
+        _badgeController.reverse();
+      });
+    }
+  }
+
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    _floatController.dispose();
+    _pulseController.dispose();
+    _badgeController.dispose();
     controller.onClose();
     super.dispose();
   }
@@ -53,117 +96,266 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     if (sizer.isWide(context)) {
       return const HomeWideView();
     }
+    final isDark = VThemeListener.I.isDarkMode;
     return ValueListenableBuilder<SLoadingState<int>>(
       valueListenable: controller,
       builder: (_, value, __) {
         return Scaffold(
-          body: CupertinoTabScaffold(
-            tabBar: CupertinoTabBar(
-              items: <BottomNavigationBarItem>[
-                BottomNavigationBarItem(
-                  icon: const Icon(Icons.campaign_outlined),
-                  label: S.of(context).annonces,
-                  tooltip: S.of(context).annonces,
-                ),
-                BottomNavigationBarItem(
-                  icon: ValueListenableBuilder<SLoadingState<int>>(
-                    valueListenable: controller,
-                    builder: (context, value, child) {
-                      return Stack(
-                        children: [
-                          const Icon(CupertinoIcons.chat_bubble_2),
-                          PositionedDirectional(
-                            end: 0,
-                            child: ChatUnReadWidget(
-                              unReadCount: controller.totalChatUnRead,
-                              width: 15,
-                              height: 15,
-                            ),
-                          )
-                        ],
+          extendBody: false,
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: isDark
+                    ? [
+                        const Color(0xFF0D0D0D),
+                        const Color(0xFF1A0E2E),
+                        const Color(0xFF2D1B4E),
+                      ]
+                    : [
+                        const Color(0xFF000000),
+                        const Color(0xFF1A0E2E),
+                        const Color(0xFF3D2257),
+                      ],
+              ),
+            ),
+            child: Stack(
+              children: [
+                // Floating background circles
+                Positioned(
+                  top: -120,
+                  right: -100,
+                  child: AnimatedBuilder(
+                    animation: _floatController,
+                    builder: (context, child) {
+                      return Container(
+                        width: 300 + (35 * _floatController.value),
+                        height: 300 + (35 * _floatController.value),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              AppTheme.primaryGreen.withValues(alpha: 0.08),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
                       );
                     },
                   ),
-                  label: S.of(context).chats,
-                  tooltip: S.of(context).chats,
                 ),
-                BottomNavigationBarItem(
-                  icon: const Icon(CupertinoIcons.add_circled),
-                  label: "Create", // S.of(context).create,
-                  tooltip: "Create", // S.of(context).create,
-                ),
-                BottomNavigationBarItem(
-                  icon: const Icon(CupertinoIcons.phone),
-                  label: S.of(context).phone,
-                  tooltip: S.of(context).phone,
-                ),
-                BottomNavigationBarItem(
-                  //rays
-                  icon: const Icon(CupertinoIcons.play_circle),
-                  label: S.of(context).stories,
-                  tooltip: S.of(context).stories,
-                ),
-
-                // BottomNavigationBarItem(
-                //   icon: const Icon(CupertinoIcons.person_2),
-                //   label: S.of(context).users,
-                //   tooltip: S.of(context).users,
-                // ),
-                BottomNavigationBarItem(
-                  icon: ValueListenableBuilder<SVersion>(
-                    valueListenable: controller.versionCheckerController,
-                    builder: (context, value, child) {
-                      return Stack(
-                        children: [
-                          const Icon(CupertinoIcons.profile_circled),
-                          PositionedDirectional(
-                            end: 0,
-                            child: ChatUnReadWidget(
-                              unReadCount: value.isNeedUpdates ? 1 : 0,
-                              width: 15,
-                              height: 15,
-                            ),
-                          )
-                        ],
+                Positioned(
+                  bottom: -150,
+                  left: -100,
+                  child: AnimatedBuilder(
+                    animation: _floatController,
+                    builder: (context, child) {
+                      return Container(
+                        width: 320 - (35 * _floatController.value),
+                        height: 320 - (35 * _floatController.value),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              Colors.purple.withValues(alpha: 0.08),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
                       );
                     },
                   ),
-                  label: S.of(context).settings,
-                  tooltip: S.of(context).settings,
+                ),
+                // Tab Content
+                CupertinoTabScaffold(
+                  controller: _tabController,
+                  backgroundColor: Colors.transparent,
+                  tabBar: CupertinoTabBar(
+                    height: 65,
+                    backgroundColor: Colors.black.withValues(alpha: 0.85),
+                    border: Border(
+                      top: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        width: 0.5,
+                      ),
+                    ),
+                    activeColor: AppTheme.primaryGreen,
+                    inactiveColor: Colors.white.withValues(alpha: 0.6),
+                    iconSize: 26,
+                    items: <BottomNavigationBarItem>[
+                      BottomNavigationBarItem(
+                        icon: _buildAnimatedIcon(
+                          icon: Icons.campaign_outlined,
+                          index: 0,
+                        ),
+                        label: S.of(context).annonces,
+                      ),
+                      BottomNavigationBarItem(
+                        icon: ValueListenableBuilder<SLoadingState<int>>(
+                          valueListenable: controller,
+                          builder: (context, value, child) {
+                            return _buildAnimatedIcon(
+                              index: 1,
+                              icon: CupertinoIcons.chat_bubble_2,
+                              badge: ChatUnReadWidget(
+                                unReadCount: controller.totalChatUnRead,
+                                width: 15,
+                                height: 15,
+                              ),
+                            );
+                          },
+                        ),
+                        label: S.of(context).chats,
+                      ),
+                      BottomNavigationBarItem(
+                        icon: _buildAnimatedIcon(
+                          icon: CupertinoIcons.add_circled,
+                          index: 2,
+                        ),
+                        label: "Create",
+                      ),
+                      BottomNavigationBarItem(
+                        icon: _buildAnimatedIcon(
+                          icon: CupertinoIcons.phone,
+                          index: 3,
+                        ),
+                        label: S.of(context).phone,
+                      ),
+                      BottomNavigationBarItem(
+                        icon: _buildAnimatedIcon(
+                          icon: CupertinoIcons.play_circle,
+                          index: 4,
+                        ),
+                        label: S.of(context).stories,
+                      ),
+                      BottomNavigationBarItem(
+                        icon: ValueListenableBuilder<SVersion>(
+                          valueListenable: controller.versionCheckerController,
+                          builder: (context, value, child) {
+                            return _buildAnimatedIcon(
+                              index: 5,
+                              icon: CupertinoIcons.profile_circled,
+                              badge: ChatUnReadWidget(
+                                unReadCount: value.isNeedUpdates ? 1 : 0,
+                                width: 15,
+                                height: 15,
+                              ),
+                            );
+                          },
+                        ),
+                        label: S.of(context).settings,
+                      ),
+                    ],
+                  ),
+                  tabBuilder: (context, index) {
+                    if (index == 0) {
+                      return const AnnouncementsPage();
+                    }
+                    if (index == 1) {
+                      return const RoomsTabView();
+                    }
+                    if (index == 2) {
+                      return const CreateAnnouncementPage();
+                    }
+                    if (index == 3) {
+                      return const CallsTabView();
+                    }
+                    if (index == 4) {
+                      return const StoryTabView();
+                    }
+                    if (index == 5) {
+                      return const ProfileScreen();
+                    }
+                    throw Exception("Not found");
+                  },
                 ),
               ],
             ),
-            tabBuilder: (context, index) {
-              if (index == 0) {
-                return const AnnouncementsPage();
-                // return const RoomsTabView();
-              }
-              if (index == 1) {
-                return const RoomsTabView();
-                // return const StoryTabView();
-              }
-              if (index == 2) {
-                return const CreateAnnouncementPage();
-                // return const CallsTabView();
-              }
-              if (index == 3) {
-                // return const UsersTabView();
-                return const CallsTabView();
-              }
-              if (index == 4) {
-                // return const UsersTabView();
-                return const StoryTabView();
-              }
-              // if (index == 5) {
-              //   // return const SettingsTabView();
-              //   return const UsersTabView();
-              // }
-              if (index == 5) {
-                //return const SettingsTabView();
-                return const ProfileScreen();
-              }
-              throw Exception("Not found");
-            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAnimatedIcon({
+    required IconData icon,
+    required int index,
+    Widget? badge,
+  }) {
+    final isActive = _tabController.index == index;
+
+    return AnimatedBuilder(
+      animation: Listenable.merge([_pulseController, _badgeController]),
+      builder: (context, child) {
+        // Pulse effect pour l'onglet actif
+        double pulseScale = 1.0;
+        if (isActive && _pulseController.isAnimating) {
+          pulseScale = 1.0 + (0.1 * _pulseController.value);
+        }
+
+        // Badge bounce effect
+        double badgeOffset = 0.0;
+        if (index == 1 && _badgeController.isAnimating) {
+          badgeOffset = -3.0 * _badgeController.value;
+        }
+
+        return AnimatedScale(
+          scale: (isActive ? 1.15 : 1.0) * pulseScale,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          child: AnimatedOpacity(
+            opacity: isActive ? 1.0 : 0.75,
+            duration: const Duration(milliseconds: 200),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Icon avec effet de brillance subtil
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: isActive
+                        ? [
+                            BoxShadow(
+                              color:
+                                  AppTheme.primaryGreen.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            )
+                          ]
+                        : null,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      icon,
+                      shadows: isActive
+                          ? [
+                              Shadow(
+                                color: AppTheme.primaryGreen
+                                    .withValues(alpha: 0.5),
+                                blurRadius: 4,
+                              )
+                            ]
+                          : null,
+                    ),
+                  ),
+                ),
+                // Badge avec animation
+                if (badge != null)
+                  PositionedDirectional(
+                    end: -2 + badgeOffset,
+                    top: -2 + badgeOffset,
+                    child: AnimatedScale(
+                      scale: index == 1 && _badgeController.isAnimating
+                          ? 1.0 + (0.2 * _badgeController.value)
+                          : 1.0,
+                      duration: const Duration(milliseconds: 100),
+                      child: badge,
+                    ),
+                  ),
+              ],
+            ),
           ),
         );
       },
