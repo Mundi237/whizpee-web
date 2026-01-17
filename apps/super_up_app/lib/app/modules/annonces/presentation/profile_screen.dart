@@ -6,7 +6,7 @@ import 'package:super_up/app/modules/annonces/cores/appstate.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart' show Annonces;
 import 'package:super_up/app/modules/annonces/presentation/announcement_detail_page.dart';
 import 'package:super_up/app/modules/annonces/presentation/announcements_page.dart';
-import 'package:super_up/app/modules/annonces/presentation/wallet_screen.dart';
+import 'package:super_up/app/modules/annonces/presentation/credits/new_wallet_page.dart';
 import 'package:super_up/app/modules/annonces/providers/annonce_controller.dart';
 // import 'package:super_up/app/modules/home/home_controller/views/pages/announcements_page.dart';
 // import 'package:super_up/app/modules/home/home_controller/views/pages/create_announcement_page.dart';
@@ -170,7 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       flex: 5,
                       child: GestureDetector(
                         onTap: () {
-                          context.toPage(const WalletScreen());
+                          context.toPage(const NewWalletPage());
                         },
                         child: Container(
                           width: double.infinity,

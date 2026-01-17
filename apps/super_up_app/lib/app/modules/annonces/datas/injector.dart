@@ -11,6 +11,10 @@ import 'package:super_up/app/modules/annonces/providers/annonce_controller.dart'
 import 'package:super_up/app/modules/annonces/providers/boost_controller.dart';
 import 'package:super_up/app/modules/annonces/providers/categorie_controller.dart';
 import 'package:super_up/app/modules/annonces/providers/credit_provider.dart';
+import 'package:super_up/app/modules/annonces/datas/services/credits/credit_api_service.dart';
+import 'package:super_up/app/modules/annonces/datas/services/credits/payment_api_service.dart';
+import 'package:super_up/app/modules/annonces/providers/wallet_provider.dart';
+import 'package:super_up/app/modules/annonces/providers/payment_provider.dart';
 
 void initInjectorApp({required SharedPreferences preferences}) {
   ///// START ////
@@ -44,5 +48,23 @@ void initInjectorApp({required SharedPreferences preferences}) {
       .registerLazySingleton(() => CreditService(GetIt.I<APIPackages>().dio));
 
   GetIt.I.registerLazySingleton(() => CreditProvider(GetIt.I<CreditService>()));
+
+  GetIt.I.registerLazySingleton<APICredits>(() => APICredits());
+
+  GetIt.I.registerLazySingleton<CreditApiService>(
+    () => CreditApiService(GetIt.I<APICredits>().dio),
+  );
+
+  GetIt.I.registerLazySingleton<PaymentApiService>(
+    () => PaymentApiService(GetIt.I<APICredits>().dio),
+  );
+
+  GetIt.I.registerLazySingleton<WalletProvider>(
+    () => WalletProvider(GetIt.I<CreditApiService>()),
+  );
+
+  GetIt.I.registerLazySingleton<PaymentProvider>(
+    () => PaymentProvider(GetIt.I<PaymentApiService>()),
+  );
   ///// END ////
 }

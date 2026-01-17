@@ -169,6 +169,21 @@ class APIPackages {
   }
 }
 
+class APICredits {
+  final Dio dios = Dio(
+    BaseOptions(
+      baseUrl: "$BASE_URL/api",
+      sendTimeout: const Duration(seconds: 30),
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 30),
+    ),
+  );
+  Dio get dio => dios;
+  APICredits() {
+    dios.interceptors.addAll({InterceptorsWrapper(dios)});
+  }
+}
+
 class BadRequestException extends DioException {
   BadRequestException(RequestOptions r, Response<dynamic>? response)
       : super(requestOptions: r, response: response) {
