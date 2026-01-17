@@ -29,32 +29,15 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
+class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin {
   late final HomeController controller;
   final sizer = GetIt.I.get<AppSizeHelper>();
-  late AnimationController _floatController;
-  late AnimationController _pulseController;
-  late AnimationController _badgeController;
   late CupertinoTabController _tabController;
+  final ValueNotifier<int> _currentIndex = ValueNotifier<int>(0);
 
   @override
   void initState() {
     super.initState();
-    _floatController = AnimationController(
-      duration: const Duration(milliseconds: 3500),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-
-    _badgeController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
     _tabController = CupertinoTabController(initialIndex: 0);
     _tabController.addListener(_onTabChanged);
     controller = HomeController(
@@ -66,27 +49,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
   void _onTabChanged() {
     HapticFeedback.selectionClick();
-
-    // Pulse animation pour le nouvel onglet actif
-    _pulseController.forward().then((_) {
-      _pulseController.reverse();
-    });
-
-    // Badge bounce animation si notification
-    if (_tabController.index == 1 && controller.totalChatUnRead > 0) {
-      _badgeController.forward().then((_) {
-        _badgeController.reverse();
-      });
-    }
+    _currentIndex.value = _tabController.index;
   }
 
   @override
   void dispose() {
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
-    _floatController.dispose();
-    _pulseController.dispose();
-    _badgeController.dispose();
+    _currentIndex.dispose();
     controller.onClose();
     super.dispose();
   }
@@ -122,49 +92,39 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             ),
             child: Stack(
               children: [
-                // Floating background circles
+                // Static background circles (no animation)
                 Positioned(
                   top: -120,
                   right: -100,
-                  child: AnimatedBuilder(
-                    animation: _floatController,
-                    builder: (context, child) {
-                      return Container(
-                        width: 300 + (35 * _floatController.value),
-                        height: 300 + (35 * _floatController.value),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              AppTheme.primaryGreen.withValues(alpha: 0.08),
-                              Colors.transparent,
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                  child: Container(
+                    width: 320,
+                    height: 320,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          AppTheme.primaryGreen.withValues(alpha: 0.08),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
                   ),
                 ),
                 Positioned(
                   bottom: -150,
                   left: -100,
-                  child: AnimatedBuilder(
-                    animation: _floatController,
-                    builder: (context, child) {
-                      return Container(
-                        width: 320 - (35 * _floatController.value),
-                        height: 320 - (35 * _floatController.value),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              Colors.purple.withValues(alpha: 0.08),
-                              Colors.transparent,
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                  child: Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.purple.withValues(alpha: 0.08),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
                   ),
                 ),
                 // Tab Content
@@ -185,18 +145,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     iconSize: 26,
                     items: <BottomNavigationBarItem>[
                       BottomNavigationBarItem(
-                        icon: _buildAnimatedIcon(
-                          icon: Icons.campaign_outlined,
-                          index: 0,
-                        ),
+                        icon: const Icon(Icons.campaign_outlined),
                         label: S.of(context).annonces,
                       ),
                       BottomNavigationBarItem(
                         icon: ValueListenableBuilder<SLoadingState<int>>(
                           valueListenable: controller,
                           builder: (context, value, child) {
-                            return _buildAnimatedIcon(
-                              index: 1,
+                            return _buildIconWithBadge(
                               icon: CupertinoIcons.chat_bubble_2,
                               badge: ChatUnReadWidget(
                                 unReadCount: controller.totalChatUnRead,
@@ -209,32 +165,22 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         label: S.of(context).chats,
                       ),
                       BottomNavigationBarItem(
-                        icon: _buildAnimatedIcon(
-                          icon: CupertinoIcons.add_circled,
-                          index: 2,
-                        ),
+                        icon: const Icon(CupertinoIcons.add_circled),
                         label: "Create",
                       ),
                       BottomNavigationBarItem(
-                        icon: _buildAnimatedIcon(
-                          icon: CupertinoIcons.phone,
-                          index: 3,
-                        ),
+                        icon: const Icon(CupertinoIcons.phone),
                         label: S.of(context).phone,
                       ),
                       BottomNavigationBarItem(
-                        icon: _buildAnimatedIcon(
-                          icon: CupertinoIcons.play_circle,
-                          index: 4,
-                        ),
+                        icon: const Icon(CupertinoIcons.play_circle),
                         label: S.of(context).stories,
                       ),
                       BottomNavigationBarItem(
                         icon: ValueListenableBuilder<SVersion>(
                           valueListenable: controller.versionCheckerController,
                           builder: (context, value, child) {
-                            return _buildAnimatedIcon(
-                              index: 5,
+                            return _buildIconWithBadge(
                               icon: CupertinoIcons.profile_circled,
                               badge: ChatUnReadWidget(
                                 unReadCount: value.isNeedUpdates ? 1 : 0,
@@ -278,87 +224,24 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildAnimatedIcon({
+  /// Lightweight icon builder for badges only - no animations
+  Widget _buildIconWithBadge({
     required IconData icon,
-    required int index,
     Widget? badge,
   }) {
-    final isActive = _tabController.index == index;
-
-    return AnimatedBuilder(
-      animation: Listenable.merge([_pulseController, _badgeController]),
-      builder: (context, child) {
-        // Pulse effect pour l'onglet actif
-        double pulseScale = 1.0;
-        if (isActive && _pulseController.isAnimating) {
-          pulseScale = 1.0 + (0.1 * _pulseController.value);
-        }
-
-        // Badge bounce effect
-        double badgeOffset = 0.0;
-        if (index == 1 && _badgeController.isAnimating) {
-          badgeOffset = -3.0 * _badgeController.value;
-        }
-
-        return AnimatedScale(
-          scale: (isActive ? 1.15 : 1.0) * pulseScale,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutCubic,
-          child: AnimatedOpacity(
-            opacity: isActive ? 1.0 : 0.75,
-            duration: const Duration(milliseconds: 200),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Icon avec effet de brillance subtil
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: isActive
-                        ? [
-                            BoxShadow(
-                              color:
-                                  AppTheme.primaryGreen.withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              spreadRadius: 1,
-                            )
-                          ]
-                        : null,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Icon(
-                      icon,
-                      shadows: isActive
-                          ? [
-                              Shadow(
-                                color: AppTheme.primaryGreen
-                                    .withValues(alpha: 0.5),
-                                blurRadius: 4,
-                              )
-                            ]
-                          : null,
-                    ),
-                  ),
-                ),
-                // Badge avec animation
-                if (badge != null)
-                  PositionedDirectional(
-                    end: -2 + badgeOffset,
-                    top: -2 + badgeOffset,
-                    child: AnimatedScale(
-                      scale: index == 1 && _badgeController.isAnimating
-                          ? 1.0 + (0.2 * _badgeController.value)
-                          : 1.0,
-                      duration: const Duration(milliseconds: 100),
-                      child: badge,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
+    if (badge == null) {
+      return Icon(icon);
+    }
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(icon),
+        PositionedDirectional(
+          end: -4,
+          top: -4,
+          child: badge,
+        ),
+      ],
     );
   }
 }

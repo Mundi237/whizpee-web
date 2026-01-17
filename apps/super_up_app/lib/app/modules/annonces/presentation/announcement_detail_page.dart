@@ -91,7 +91,14 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage>
 
   void checkAnnonce() {
     if (widget.announcement.isBoosted && !widget.announcement.isPublished) {
-      GetIt.I.get<AnnonceController>().publishAnnonce(widget.announcement.id);
+      // Appeler publishAnnonce avec gestion d'erreur silencieuse
+      GetIt.I
+          .get<AnnonceController>()
+          .publishAnnonce(widget.announcement.id)
+          .catchError((e) {
+        // Logger l'erreur mais ne pas planter l'application
+        debugPrint('Erreur lors de la publication automatique: $e');
+      });
     }
   }
 

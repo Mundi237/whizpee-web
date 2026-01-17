@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:s_translation/generated/l10n.dart';
 import 'package:super_up_core/super_up_core.dart';
@@ -136,39 +136,59 @@ class StoryTabController extends SLoadingController<StoryTabState> {
   }
 
   void toCreateStory(BuildContext context) async {
+    HapticFeedback.lightImpact();
+
     final res = await VAppAlert.showModalSheetWithActions(
       content: [
         ModelSheetItem(
           title: S.of(context).createTextStory,
-          id: "1",iconData:Icon(Icons.text_fields)
+          id: "1",
+          iconData: const Icon(Icons.text_fields_rounded),
         ),
         ModelSheetItem(
           title: S.of(context).createMediaStory,
           id: "2",
-          iconData: Icon(Icons.perm_media_outlined)
+          iconData: const Icon(Icons.photo_camera_rounded),
         ),
       ],
       context: context,
     );
+
     if (res == null) return;
+
     if (res.id == "1") {
-      await context.toPage(
-        const CreateTextStory(),
-      );
+      if (context.mounted) {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const CreateTextStory(),
+          ),
+        );
+      }
     }
+
     if (res.id == "2") {
-      final res = await _processPickImage(context);
-      if (res == null) return;
-      final image = await VAppPick.getImage(isFromCamera: res == 1);
+      final imageSource = await _processPickImage(context);
+      if (imageSource == null) return;
+
+      final image = await VAppPick.getImage(isFromCamera: imageSource == 1);
       if (image == null) return;
+
+      if (!context.mounted) return;
       final mediaAfterEdit = await onSubmitMedia(context, [image]);
       if (mediaAfterEdit == null) return;
-      await context.toPage(
-        CreateMediaStory(
-          media: mediaAfterEdit,
-        ),
-      );
+
+      if (context.mounted) {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => CreateMediaStory(
+              media: mediaAfterEdit,
+            ),
+          ),
+        );
+      }
     }
+
+    // Refresh stories after creation
     getMyStoryFromApi();
   }
 
@@ -176,9 +196,14 @@ class StoryTabController extends SLoadingController<StoryTabState> {
     BuildContext context,
     List<VPlatformFile> files,
   ) async {
-    final fileRes = await context.toPage(VMediaEditorView(
-      files: files,
-    )) as List<VBaseMediaRes>?;
+    final fileRes = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => VMediaEditorView(
+          files: files,
+        ),
+      ),
+    ) as List<VBaseMediaRes>?;
+
     if (fileRes == null || fileRes.isEmpty) return null;
     return fileRes.first;
   }
@@ -189,10 +214,12 @@ class StoryTabController extends SLoadingController<StoryTabState> {
         ModelSheetItem(
           title: S.of(context).camera,
           id: "1",
+          iconData: const Icon(Icons.camera_alt_rounded),
         ),
         ModelSheetItem(
           title: S.of(context).gallery,
           id: "2",
+          iconData: const Icon(Icons.photo_library_rounded),
         ),
       ],
       context: context,

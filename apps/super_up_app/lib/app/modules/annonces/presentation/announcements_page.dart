@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:super_up/app/modules/annonces/cores/appstate.dart';
 import 'package:super_up/app/modules/annonces/datas/services/api_services.dart';
 import 'package:super_up/app/modules/annonces/presentation/annoncment_component.dart';
-import 'package:super_up/app/modules/annonces/presentation/widgets/app_logo_header.dart';
+import 'package:super_up/app/core/widgets/app_header_logo.dart';
 import 'package:super_up/app/modules/annonces/providers/annonce_controller.dart';
 import 'package:super_up/app/modules/annonces/providers/credit_provider.dart';
 import 'package:super_up_core/super_up_core.dart';
@@ -369,57 +369,52 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
                 child: CustomScrollView(
                   physics: const BouncingScrollPhysics(),
                   slivers: [
-                    // Premium Header with AppLogo
+                    // Premium Header with AppHeaderLogo
                     SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            if (widget.withBack)
-                              GestureDetector(
-                                onTap: () => Navigator.pop(context),
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.15),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.25),
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  child: const Icon(Icons.arrow_back,
-                                      color: Colors.white, size: 20),
-                                ),
-                              )
-                            else
-                              const AppLogoHeader(),
+                      child: AppHeaderLogo(
+                        icon: Icons.campaign_rounded,
+                        title: 'Annonces',
+                        actions: [
+                          if (widget.withBack)
                             GestureDetector(
-                              onTap: _showFilterModal,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
+                              onTap: () => Navigator.pop(context),
+                              child: Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withValues(alpha: 0.15),
-                                  shape: BoxShape.circle,
+                                  borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: AppTheme.primaryGreen
-                                        .withValues(alpha: 0.3),
-                                    width: 1.5,
+                                    color: Colors.white.withValues(alpha: 0.25),
                                   ),
                                 ),
                                 child: Icon(
-                                  Icons.tune_rounded,
-                                  color: AppTheme.primaryGreen,
-                                  size: 24,
+                                  Icons.arrow_back_rounded,
+                                  color: Colors.white,
+                                  size: 20,
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                          const SizedBox(width: 8),
+                          // Filter button
+                          GestureDetector(
+                            onTap: _showFilterModal,
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.25),
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.tune_rounded,
+                                color: AppTheme.primaryGreen,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     // Tabs

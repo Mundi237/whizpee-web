@@ -2,8 +2,11 @@
 // All rights reserved. Use of this source code is governed by a
 // MIT license that can be found in the LICENSE file.
 
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get_it/get_it.dart';
 import 'package:s_translation/generated/l10n.dart';
 import 'package:super_up/app/core/api_service/story/story_api_service.dart';
@@ -63,168 +66,510 @@ class StoryViewersScreen extends StatefulWidget {
   State<StoryViewersScreen> createState() => _StoryViewersScreenState();
 }
 
-class _StoryViewersScreenState extends State<StoryViewersScreen> {
+class _StoryViewersScreenState extends State<StoryViewersScreen>
+    with SingleTickerProviderStateMixin {
   late final StoryViewersController controller;
+  late AnimationController _floatController;
 
   @override
   void initState() {
     super.initState();
     controller = StoryViewersController(widget.storyId);
     controller.onInit();
+
+    _floatController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     controller.onClose();
+    _floatController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = VThemeListener.I.isDarkMode;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(S.of(context).storyViewers),
+      extendBody: true,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [
+                    const Color(0xFF0D0D0D),
+                    const Color(0xFF1A0E2E),
+                    const Color(0xFF2D1B4E),
+                  ]
+                : [
+                    const Color(0xFF000000),
+                    const Color(0xFF1A0E2E),
+                    const Color(0xFF3D2257),
+                  ],
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // Floating glassmorphism circles
+              Positioned(
+                top: -100,
+                right: -100,
+                child: AnimatedBuilder(
+                  animation: _floatController,
+                  builder: (context, child) {
+                    return Container(
+                      width: 280 + (30 * _floatController.value),
+                      height: 280 + (30 * _floatController.value),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            AppTheme.primaryGreen.withValues(alpha: 0.12),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Positioned(
+                bottom: -120,
+                left: -80,
+                child: AnimatedBuilder(
+                  animation: _floatController,
+                  builder: (context, child) {
+                    return Container(
+                      width: 300 - (30 * _floatController.value),
+                      height: 300 - (30 * _floatController.value),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            Colors.purple.withValues(alpha: 0.1),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              // Main content
+              Column(
+                children: [
+                  _buildHeader().animate().slideY(begin: -1, end: 0).fadeIn(),
+                  Expanded(
+                    child: _buildContent(),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
-      body: SafeArea(
-        child: ValueListenableBuilder<SLoadingState<List<StoryViewerModel>>>(
-          valueListenable: controller,
-          builder: (context, state, child) {
-            return VAsyncWidgetsBuilder(
-              loadingState: state.loadingState,
-              onRefresh: controller.loadViewers,
-              errorWidget: () {
-                return Center(
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Navigator.of(context).pop();
+            },
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2),
+                ),
+              ),
+              child: const Icon(
+                Icons.arrow_back_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  S.of(context).storyViewers,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Personnes ayant vu votre story',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    return ValueListenableBuilder<SLoadingState<List<StoryViewerModel>>>(
+      valueListenable: controller,
+      builder: (context, state, child) {
+        return VAsyncWidgetsBuilder(
+          loadingState: state.loadingState,
+          onRefresh: controller.loadViewers,
+          loadingWidget: () => _buildLoadingState(),
+          errorWidget: () => _buildErrorState(),
+          successWidget: () {
+            final viewers = state.data;
+            if (viewers.isEmpty) {
+              return _buildEmptyState();
+            }
+
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.08),
+                    Colors.white.withValues(alpha: 0.03),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: Colors.red.withValues(alpha: 0.7),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        S.of(context).failedToLoadViewers,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Colors.grey[600],
-                              fontSize: 16,
+                      // Header with count
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.1),
                             ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: controller.loadViewers,
-                        icon: const Icon(Icons.refresh),
-                        label: Text(S.of(context).retry),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
                           ),
                         ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryGreen
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.visibility_rounded,
+                                color: AppTheme.primaryGreen,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              '${viewers.length} vue${viewers.length > 1 ? 's' : ''}',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Viewers list
+                      Expanded(
+                        child: ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: viewers.length,
+                          separatorBuilder: (context, index) => Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
+                          itemBuilder: (context, index) {
+                            final viewer = viewers[index];
+                            return _buildViewerItem(viewer, index);
+                          },
+                        ),
                       ),
                     ],
                   ),
-                );
-              },
-              loadingWidget: () {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const CupertinoActivityIndicator(radius: 16),
-                      const SizedBox(height: 16),
-                      Text(
-                        S.of(context).loadingViewers,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-              successWidget: () {
-                final viewers = state.data;
-                if (viewers.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.visibility_off,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          S.of(context).noViewersYet,
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: Colors.grey,
-                                    fontSize: 16,
-                                  ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
-                return ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: viewers.length,
-                  separatorBuilder: (context, index) => Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: Colors.grey.withValues(alpha: 0.2),
+  Widget _buildViewerItem(StoryViewerModel viewer, int index) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => PeerProfileView(peerId: viewer.viewerInfo.id),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppTheme.primaryGreen.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              child: VCircleAvatar(
+                vFileSource: VPlatformFile.fromUrl(
+                  networkUrl: viewer.viewerInfo.userImage,
+                ),
+                radius: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    viewer.viewerInfo.fullName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  itemBuilder: (context, index) {
-                    final viewer = viewers[index];
-                    return ListTile(
-                      onTap: () {
-                        context.toPage(
-                          PeerProfileView(peerId: viewer.viewerInfo.id),
-                        );
-                      },
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 16,
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.schedule_rounded,
+                        color: Colors.white.withValues(alpha: 0.6),
+                        size: 14,
                       ),
-                      leading: VCircleAvatar(
-                        vFileSource: VPlatformFile.fromUrl(
-                          networkUrl: viewer.viewerInfo.userImage,
-                        ),
-                        radius: 24,
-                      ),
-                      title: Text(
-                        viewer.viewerInfo.fullName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      subtitle: Text(
+                      const SizedBox(width: 4),
+                      Text(
                         format(
                           viewer.viewedAtLocal,
                           locale: Localizations.localeOf(context).languageCode,
                         ),
                         style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 12,
-                          color: Colors.grey[600],
                         ),
                       ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.grey,
-                        size: 16,
-                      ),
-                    );
-                  },
-                );
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white.withValues(alpha: 0.3),
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    )
+        .animate(delay: (index * 100).ms)
+        .fadeIn(duration: 400.ms)
+        .slideX(begin: 0.3, end: 0);
+  }
+
+  Widget _buildLoadingState() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(40),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              color: AppTheme.primaryGreen,
+              strokeWidth: 3,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              S.of(context).loadingViewers,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(40),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                color: Colors.red.shade400,
+                size: 48,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              S.of(context).failedToLoadViewers,
+              style: TextStyle(
+                color: Colors.red.shade400,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Impossible de charger les vues',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                controller.loadViewers();
               },
-            );
-          },
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(S.of(context).retry),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryGreen,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(40),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.visibility_off_rounded,
+                size: 48,
+                color: Colors.white.withValues(alpha: 0.4),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              S.of(context).noViewersYet,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.8),
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Personne n\'a encore vu votre story',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.6),
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );

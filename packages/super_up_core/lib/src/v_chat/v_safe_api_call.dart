@@ -338,8 +338,6 @@ extension VApiExceptionExtension on VApiException {
   bool get isCritical => isHttpError || isFormatError;
 }
 
-
-
 /// Extension to create a copy of VApiConfig with modified values
 extension VApiConfigExtension on VApiConfig {
   VApiConfig copyWith({

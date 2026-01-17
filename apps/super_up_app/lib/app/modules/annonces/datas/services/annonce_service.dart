@@ -81,8 +81,14 @@ class AnnonceService {
           await dio.post('/annonces/publish', data: {"annonceId": annonceID});
       final data = response.data['data'];
       return Annonces.fromMap(data);
+    } on DioException catch (e) {
+      // Gérer spécifiquement les erreurs Dio
+      Utils.loggerError('DioException dans publishAnnonce: ${e.message}');
+      Utils.loggerError('Response: ${e.response?.data}');
+      rethrow;
     } catch (e) {
-      Utils.loggerError(e);
+      // Gérer les autres types d'erreurs
+      Utils.loggerError('Erreur inattendue dans publishAnnonce: $e');
       rethrow;
     }
   }

@@ -10,7 +10,9 @@ import 'package:super_up/app/modules/annonces/datas/models/city.dart';
 import 'package:super_up/app/modules/annonces/datas/services/annonce_service.dart';
 import 'package:super_up/app/modules/annonces/datas/utils.dart';
 import 'package:super_up/app/modules/annonces/presentation/announcement_detail_page.dart';
+import 'package:super_up/app/modules/annonces/presentation/boost_annoncement.dart';
 import 'package:super_up/app/modules/annonces/presentation/credit_pay_bottom_sheet.dart';
+import 'package:super_up/app/modules/annonces/providers/boost_controller.dart';
 import 'package:super_up/app/modules/annonces/providers/credit_provider.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart'
@@ -347,10 +349,13 @@ class AnnonceController extends ChangeNotifier {
       if (annonceState.value.hasNotNullData) {
         VAppAlert.showSuccessSnackBar(
             message: "Annoncement added successfully", context: context);
-        // Navigator.of(context).pop();
+        // Set the created announcement in boost controller
+        final boostController = GetIt.I.get<BoostController>();
+        boostController.changeAnnonce(annonceState.value.data!);
+        // Navigate to boost page instead of detail page
         context.toPage(
-          AnnouncementDetailPage(
-            announcement: annonceState.value.data!,
+          BoostAnnoncementScreen(
+            annonces: annonceState.value.data!,
           ),
         );
       }

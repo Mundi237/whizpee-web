@@ -48,8 +48,10 @@ class RoomsTabController extends ValueNotifier implements SBaseController {
       if (kDebugMode) {
         print('✅ createNewGroup: groupRoom created, opening chat');
       }
-      VChatController.I.vNavigator.messageNavigator
-          .toMessagePage(context, groupRoom);
+      if (context.mounted) {
+        VChatController.I.vNavigator.messageNavigator
+            .toMessagePage(context, groupRoom);
+      }
     } catch (e) {
       if (kDebugMode) {
         print('❌ createNewGroup error: $e');
@@ -77,8 +79,10 @@ class RoomsTabController extends ValueNotifier implements SBaseController {
       if (kDebugMode) {
         print('✅ createNewBroadcast: broadcastRoom created, opening chat');
       }
-      VChatController.I.vNavigator.messageNavigator
-          .toMessagePage(context, broadcastRoom);
+      if (context.mounted) {
+        VChatController.I.vNavigator.messageNavigator
+            .toMessagePage(context, broadcastRoom);
+      }
     } catch (e) {
       if (kDebugMode) {
         print('❌ createNewBroadcast error: $e');
@@ -87,7 +91,9 @@ class RoomsTabController extends ValueNotifier implements SBaseController {
   }
 
   void onSearchClicked(BuildContext context) {
-    context.toPage(const ChatsSearchView());
+    if (context.mounted) {
+      context.toPage(const ChatsSearchView());
+    }
   }
 
   void createNewChat(BuildContext context) async {
@@ -121,11 +127,11 @@ class RoomsTabController extends ValueNotifier implements SBaseController {
         peerId: selectedUser.id,
       );
 
-      if (!context.mounted) return;
-
-      // Ouvrir la conversation
-      VChatController.I.vNavigator.messageNavigator
-          .toMessagePage(context, room);
+      if (context.mounted) {
+        // Ouvrir la conversation
+        VChatController.I.vNavigator.messageNavigator
+            .toMessagePage(context, room);
+      }
     } catch (e) {
       if (kDebugMode) {
         print('Error creating peer room: $e');
@@ -144,6 +150,9 @@ class RoomsTabController extends ValueNotifier implements SBaseController {
     // return;
     final fileSource = await VAppPick.getImage(isFromCamera: true);
     if (fileSource == null) return;
+
+    if (!context.mounted) return;
+
     final roomsIds = await VChatController.I.vNavigator.roomNavigator
         .toForwardPage(context, null);
     final data = await VFileUtils.getImageInfo(

@@ -2,8 +2,10 @@
 // All rights reserved. Use of this source code is governed by a
 // MIT license that can be found in the LICENSE file.
 
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:s_translation/generated/l10n.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart';
@@ -29,135 +31,205 @@ class CallItem extends StatelessWidget {
     final backgroundColor = _getBackgroundColor(isIncomingCall);
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 2),
+      margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: context.isDark
-            ? Colors.grey[900]?.withOpacity(0.3)
-            : Colors.grey[50],
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.1),
+            Colors.white.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.15),
+          width: 1,
+        ),
       ),
-      child: InkWell(
-        onTap: onPress,
-        onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(12),
-        child: CupertinoListTile(
-          leadingSize: 50,
-          leading: Stack(
-            children: [
-              VCircleAvatar(
-                vFileSource: VPlatformFile.fromUrl(
-                    networkUrl: callHistory.caller.userImage),
-                radius: 25,
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  height: 20,
-                  width: 20,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: backgroundColor,
-                    border: Border.all(
-                      color: context.isDark ? Colors.grey[900]! : Colors.white,
-                      width: 2,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onPress();
+            },
+            onLongPress: () {
+              HapticFeedback.mediumImpact();
+              onLongPress();
+            },
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  // Avatar with call direction indicator
+                  Stack(
+                    children: [
+                      VCircleAvatar(
+                        vFileSource: VPlatformFile.fromUrl(
+                            networkUrl: callHistory.caller.userImage),
+                        radius: 28,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          height: 24,
+                          width: 24,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                backgroundColor,
+                                backgroundColor.withValues(alpha: 0.8),
+                              ],
+                            ),
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: backgroundColor.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            callIcon,
+                            color: Colors.white,
+                            size: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  // Call details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Name and call type
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                callHistory.caller.fullName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                color: callColor.withValues(alpha: 0.15),
+                                border: Border.all(
+                                  color: callColor.withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Icon(
+                                callHistory.withVideo
+                                    ? PhosphorIcons.videoCamera(
+                                        PhosphorIconsStyle.fill)
+                                    : Icons.call_rounded,
+                                color: callColor,
+                                size: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        // Status and duration
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    _getStatusColor().withValues(alpha: 0.2),
+                                    _getStatusColor().withValues(alpha: 0.1),
+                                  ],
+                                ),
+                                border: Border.all(
+                                  color:
+                                      _getStatusColor().withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Text(
+                                transCallStatus(callHistory, context),
+                                style: TextStyle(
+                                  color: _getStatusColor(),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            if (callHistory.callStatus ==
+                                    VCallStatus.finished &&
+                                callHistory.endAt != null) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                ),
+                                child: Text(
+                                  _formatDuration(),
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.7),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            const Spacer(),
+                            // Date/Time
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(6),
+                                color: Colors.white.withValues(alpha: 0.05),
+                              ),
+                              child: Text(
+                                format(
+                                  callHistory.startAtDate,
+                                  locale: Localizations.localeOf(context)
+                                      .languageCode,
+                                ),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  child: Icon(
-                    callIcon,
-                    color: Colors.white,
-                    size: 10,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          trailing: Container(
-            height: 40,
-            width: 40,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: callColor.withOpacity(0.1),
-              border: Border.all(
-                color: callColor.withOpacity(0.3),
-                width: 1,
+                ],
               ),
             ),
-            child: Icon(
-              callHistory.withVideo
-                  ? PhosphorIcons.videoCamera(PhosphorIconsStyle.fill)
-                  : CupertinoIcons.phone_fill,
-              color: callColor,
-              size: 20,
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          additionalInfo: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: callColor.withOpacity(0.1),
-            ),
-            child: Text(
-              format(
-                callHistory.startAtDate,
-                locale: Localizations.localeOf(context).languageCode,
-              ),
-              style: TextStyle(
-                fontSize: 11,
-                color: callColor,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          title: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  callHistory.caller.fullName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-              Icon(
-                callIcon,
-                color: callColor,
-                size: 14,
-              ),
-            ],
-          ),
-          subtitle: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(6),
-                  color: _getStatusColor().withOpacity(0.1),
-                ),
-                child: Text(
-                  transCallStatus(callHistory, context),
-                  style: TextStyle(
-                    color: _getStatusColor(),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              if (callHistory.callStatus == VCallStatus.finished &&
-                  callHistory.endAt != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Text(
-                    _formatDuration(),
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 11,
-                    ),
-                  ),
-                ),
-            ],
           ),
         ),
       ),
