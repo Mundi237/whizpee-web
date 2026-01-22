@@ -400,7 +400,6 @@ class _CreateMediaStoryState extends State<CreateMediaStory>
       onSuccess: (response) {
         if (mounted) {
           Navigator.of(context).pop();
-          Navigator.of(context).pop();
           VAppAlert.showSuccessSnackBar(
             context: context,
             message: S.of(context).storyCreatedSuccessfully,

@@ -7,6 +7,10 @@ analyzer:
   exclude:
     - ./example
     - '**.g.dart'
+  language:
+    strict-casts: false
+    strict-inference: false
+    strict-raw-types: false
 
 
 # You can customize the lint rules set to your own liking. A list of all rules

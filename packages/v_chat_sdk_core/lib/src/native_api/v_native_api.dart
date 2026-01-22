@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:super_up_core/super_up_core.dart';
+import 'package:v_chat_sdk_core/src/http/api_service/announcement_room/announcement_room_api_service.dart';
 import 'package:v_chat_sdk_core/src/http/api_service/block/block_api_service.dart';
 import 'package:v_chat_sdk_core/src/http/api_service/call/call_api_service.dart';
 import 'package:v_chat_sdk_core/src/http/api_service/channel/channel_api_service.dart';
@@ -30,6 +31,7 @@ class VNativeApi {
   final remote = VRemoteNativeApi(
     VChannelApiService.init(),
     VMessageApiService.init(),
+    VAnnouncementRoomApiService.init(),
     VProfileApiService.init(),
     VCallApiService.init(),
     VContactsApiService.init(),
@@ -94,6 +96,7 @@ class VRemoteNativeApi {
   final socketIo = NativeRemoteSocketIo();
   final VChannelApiService _room;
   final VMessageApiService _nativeRemoteMessage;
+  final VAnnouncementRoomApiService _nativeAnnouncementRoomApiService;
   final VCallApiService _nativeRemoteCallApiService;
   final VBlockApiService _nativeRemoteBlockApiService;
   final VContactsApiService _nativeContactsService;
@@ -102,6 +105,7 @@ class VRemoteNativeApi {
   VRemoteNativeApi(
     this._room,
     this._nativeRemoteMessage,
+    this._nativeAnnouncementRoomApiService,
     this._nativeProfileApiService,
     this._nativeRemoteCallApiService,
     this._nativeContactsService,
@@ -136,6 +140,9 @@ class VRemoteNativeApi {
   }
 
   VMessageApiService get message => _nativeRemoteMessage;
+
+  VAnnouncementRoomApiService get announcementRoom =>
+      _nativeAnnouncementRoomApiService;
 
   VProfileApiService get profile => _nativeProfileApiService;
 

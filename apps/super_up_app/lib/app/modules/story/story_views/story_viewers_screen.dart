@@ -30,22 +30,61 @@ class StoryViewersController
   Future<void> loadViewers() async {
     setStateLoading();
 
-    vSafeApiCall(
-      request: () async {
-        return await _api.getStoryViews(storyId: storyId);
-      },
-      onSuccess: (viewers) {
-        value.data = viewers;
-        setStateSuccess();
-      },
-      onError: (exception) {
-        print('Error loading story viewers: $exception');
-        if (exception is Error) {
-          print('StackTrace: ${exception.stackTrace}');
-        }
-        setStateError(exception.toString());
-      },
-    );
+    try {
+      vSafeApiCall(
+        request: () async {
+          return await _api.getStoryViews(storyId: storyId);
+        },
+        onSuccess: (viewers) {
+          value.data = viewers;
+          setStateSuccess();
+        },
+        onError: (exception) {
+          String errorMessage = 'Une erreur est survenue';
+
+          // Gérer les erreurs spécifiques
+          if (exception.toString().contains('This not your story!')) {
+            errorMessage = 'Vous ne pouvez pas voir les vues de cette story';
+          } else if (exception.toString().contains('SuperHttpBadRequest')) {
+            errorMessage = 'Requête invalide';
+          } else if (exception.toString().contains('Network')) {
+            errorMessage = 'Problème de connexion internet';
+          } else if (exception.toString().contains('Timeout')) {
+            errorMessage = 'Délai d\'attente dépassé';
+          } else {
+            errorMessage = 'Impossible de charger les vues';
+          }
+
+          print('Error loading story viewers: $exception');
+          if (exception is Error) {
+            print('StackTrace: ${exception.stackTrace}');
+          }
+          setStateError(errorMessage);
+        },
+        config: const VApiConfig(
+          throwExceptions: false,
+          timeout: Duration(seconds: 30),
+        ),
+      );
+    } catch (e) {
+      String errorMessage = 'Une erreur est survenue';
+
+      // Gérer les erreurs spécifiques
+      if (e.toString().contains('This not your story!')) {
+        errorMessage = 'Vous ne pouvez pas voir les vues de cette story';
+      } else if (e.toString().contains('SuperHttpBadRequest')) {
+        errorMessage = 'Requête invalide';
+      } else if (e.toString().contains('Network')) {
+        errorMessage = 'Problème de connexion internet';
+      } else if (e.toString().contains('Timeout')) {
+        errorMessage = 'Délai d\'attente dépassé';
+      } else {
+        errorMessage = 'Impossible de charger les vues';
+      }
+
+      print('Caught exception in loadViewers: $e');
+      setStateError(errorMessage);
+    }
   }
 
   @override
@@ -456,71 +495,108 @@ class _StoryViewersScreenState extends State<StoryViewersScreen>
   }
 
   Widget _buildErrorState() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(40),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.1),
-        ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(
-                Icons.error_outline_rounded,
-                color: Colors.red.shade400,
-                size: 48,
-              ),
+    return ValueListenableBuilder<SLoadingState<List<StoryViewerModel>>>(
+      valueListenable: controller,
+      builder: (context, state, child) {
+        final errorMessage = state.stateError ?? 'Une erreur est survenue';
+
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.all(40),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.1),
             ),
-            const SizedBox(height: 16),
-            Text(
-              S.of(context).failedToLoadViewers,
-              style: TextStyle(
-                color: Colors.red.shade400,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Impossible de charger les vues',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                controller.loadViewers();
-              },
-              icon: const Icon(Icons.refresh_rounded),
-              label: Text(S.of(context).retry),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryGreen,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: errorMessage.contains('pas voir les vues')
+                        ? Colors.orange.withValues(alpha: 0.1)
+                        : Colors.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    errorMessage.contains('pas voir les vues')
+                        ? Icons.lock_outline_rounded
+                        : Icons.error_outline_rounded,
+                    color: errorMessage.contains('pas voir les vues')
+                        ? Colors.orange.shade400
+                        : Colors.red.shade400,
+                    size: 48,
+                  ),
                 ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
+                const SizedBox(height: 16),
+                Text(
+                  errorMessage.contains('pas voir les vues')
+                      ? 'Accès restreint'
+                      : S.of(context).failedToLoadViewers,
+                  style: TextStyle(
+                    color: errorMessage.contains('pas voir les vues')
+                        ? Colors.orange.shade400
+                        : Colors.red.shade400,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  errorMessage,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                if (!errorMessage.contains('pas voir les vues'))
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      controller.loadViewers();
+                    },
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(S.of(context).retry),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                  ),
+                if (errorMessage.contains('pas voir les vues'))
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.of(context).pop();
+                    },
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    label: const Text('Retour'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                  ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

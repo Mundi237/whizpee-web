@@ -25,6 +25,12 @@ class _BoostAnnonceBottomSheetState extends State<BoostAnnonceBottomSheet>
   bool _isProcessing = false;
   late AnimationController _pulseController;
 
+  bool get isFreeBoost {
+    final controller = GetIt.I.get<BoostController>();
+    final selectedBoost = controller.selectedBoost;
+    return selectedBoost?.title.toUpperCase() == 'SILVER';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -86,12 +92,18 @@ class _BoostAnnonceBottomSheetState extends State<BoostAnnonceBottomSheet>
               ),
               // Header
               _buildHeader(),
-              // Selected duration display
-              _buildDurationDisplay(),
-              // Slider
-              _buildSlider(),
-              // Quick suggestions
-              _buildQuickSuggestions(),
+              // Afficher la sélection de durée seulement si ce n'est pas un boost gratuit
+              if (!isFreeBoost) ...[
+                // Selected duration display
+                _buildDurationDisplay(),
+                // Slider
+                _buildSlider(),
+                // Quick suggestions
+                _buildQuickSuggestions(),
+              ] else ...[
+                // Message pour le boost gratuit illimité
+                _buildFreeBoostInfo(),
+              ],
               const Spacer(),
               // Action buttons
               _buildActionButtons(controller),
@@ -115,7 +127,9 @@ class _BoostAnnonceBottomSheetState extends State<BoostAnnonceBottomSheet>
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              Icons.schedule_rounded,
+              isFreeBoost
+                  ? Icons.all_inclusive_rounded
+                  : Icons.schedule_rounded,
               color: AppTheme.primaryGreen,
               size: 24,
             ),
@@ -126,7 +140,7 @@ class _BoostAnnonceBottomSheetState extends State<BoostAnnonceBottomSheet>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Durée du boost',
+                  isFreeBoost ? 'Boost Gratuit' : 'Durée du boost',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -135,7 +149,9 @@ class _BoostAnnonceBottomSheetState extends State<BoostAnnonceBottomSheet>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Choisissez combien de temps votre annonce sera boostée',
+                  isFreeBoost
+                      ? 'Boost gratuit et illimité pour votre annonce'
+                      : 'Choisissez combien de temps votre annonce sera boostée',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 14,
@@ -484,7 +500,7 @@ class _BoostAnnonceBottomSheetState extends State<BoostAnnonceBottomSheet>
                         Text(
                           (state.isLoading || _isProcessing)
                               ? 'Boost en cours...'
-                              : 'Booster gratuitement',
+                              : 'Booster l\'annonce',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -584,5 +600,94 @@ class _BoostAnnonceBottomSheetState extends State<BoostAnnonceBottomSheet>
         }
       }
     });
+  }
+
+  Widget _buildFreeBoostInfo() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.primaryGreen.withValues(alpha: 0.1),
+            AppTheme.primaryGreen.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppTheme.primaryGreen.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryGreen.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.all_inclusive_rounded,
+              color: AppTheme.primaryGreen,
+              size: 32,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Boost Gratuit & Illimité',
+            style: TextStyle(
+              color: AppTheme.primaryGreen,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Votre annonce sera boostée gratuitement sans limitation de durée. Profitez de cette offre pour maximiser la visibilité de votre annonce !',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.8),
+              fontSize: 14,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryGreen.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.check_circle_rounded,
+                  color: AppTheme.primaryGreen,
+                  size: 16,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Actif immédiatement',
+                  style: TextStyle(
+                    color: AppTheme.primaryGreen,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 600.ms).scale(
+          begin: const Offset(0.9, 0.9),
+          end: const Offset(1.0, 1.0),
+          duration: 400.ms,
+          curve: Curves.easeOut,
+        );
   }
 }

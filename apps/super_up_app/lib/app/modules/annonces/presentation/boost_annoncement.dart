@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get_it/get_it.dart';
+import 'package:super_up/app/core/widgets/app_header_logo.dart';
 import 'package:super_up/app/modules/annonces/cores/appstate.dart';
 import 'package:super_up/app/modules/annonces/providers/boost_controller.dart';
 import 'package:super_up/app/modules/annonces/presentation/boost_annonce_bootom_sheet.dart';
@@ -123,8 +124,37 @@ class _BoostAnnoncementScreenState extends State<BoostAnnoncementScreen>
               // Main content
               Column(
                 children: [
-                  // Header
-                  _buildHeader(),
+                  // Premium Header with AppHeaderLogo
+                  AppHeaderLogo(
+                    icon: Icons.rocket_launch_rounded,
+                    title: "Booster l'annonce",
+                    actions: [
+                      // Info button
+                      GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          _showInfoModal();
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.info_outline_rounded,
+                            color: AppTheme.primaryGreen,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Announcement Preview Card
+                  _buildAnnouncementPreview(),
                   // Content
                   Expanded(
                     child: ValueListenableBuilder<AppState<List<Boost>>>(
@@ -145,8 +175,6 @@ class _BoostAnnoncementScreenState extends State<BoostAnnoncementScreen>
                       },
                     ),
                   ),
-                  // Skip button
-                  _buildSkipButton(),
                 ],
               ),
             ],
@@ -156,32 +184,41 @@ class _BoostAnnoncementScreenState extends State<BoostAnnoncementScreen>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildAnnouncementPreview() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          Row(
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.1),
+            Colors.white.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.15),
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Row(
             children: [
-              GestureDetector(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  Navigator.of(context).pop();
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.image_rounded,
+                  color: Colors.white.withValues(alpha: 0.6),
+                  size: 30,
                 ),
               ),
               const SizedBox(width: 16),
@@ -190,119 +227,193 @@ class _BoostAnnoncementScreenState extends State<BoostAnnoncementScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Booster votre annonce',
-                      style: TextStyle(
+                      widget.annonces.title,
+                      style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Augmentez votre visibilité',
+                      widget.annonces.ville ?? 'Ville non spécifiée',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: Colors.white.withValues(alpha: 0.6),
                         fontSize: 14,
                       ),
                     ),
+                    const SizedBox(height: 4),
+                    if (widget.annonces.price != null &&
+                        widget.annonces.price! > 0)
+                      Text(
+                        '${widget.annonces.price} XAF',
+                        style: TextStyle(
+                          color: AppTheme.primaryGreen,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                   ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.rocket_launch_rounded,
-                  color: AppTheme.primaryGreen,
-                  size: 24,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          // Announcement preview card
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withValues(alpha: 0.1),
-                  Colors.white.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.15),
-              ),
+        ),
+      ),
+    ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.3, end: 0);
+  }
+
+  void _showInfoModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.6,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                const Color(0xFF0D0D0D),
+                const Color(0xFF1A0E2E),
+              ],
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Row(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.1),
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.image_rounded,
-                        color: Colors.white.withValues(alpha: 0.6),
-                        size: 30,
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.annonces.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            widget.annonces.ville ?? 'Ville non spécifiée',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.6),
-                              fontSize: 14,
-                            ),
+                          child: Icon(
+                            Icons.rocket_launch_rounded,
+                            color: AppTheme.primaryGreen,
+                            size: 24,
                           ),
-                          const SizedBox(height: 4),
-                          if (widget.annonces.price != null)
-                            Text(
-                              '${widget.annonces.price} XAF',
-                              style: TextStyle(
-                                color: AppTheme.primaryGreen,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                        ],
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          'À propos du boost',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Le boost augmente la visibilité de votre annonce en la positionnant en tête des résultats de recherche.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white.withValues(alpha: 0.8),
+                        height: 1.5,
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Avantages du boost :',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildInfoPoint('Plus de visibilité',
+                        'Votre annonce apparaît en premier'),
+                    _buildInfoPoint(
+                        'Plus de vues', 'Augmentez le nombre de consultations'),
+                    _buildInfoPoint(
+                        'Plus de contacts', 'Recevez plus de messages'),
                   ],
                 ),
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoPoint(String title, String description) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 6),
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryGreen,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
-    ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.3, end: 0);
+    );
   }
 
   Widget _buildLoadingState() {
@@ -448,117 +559,71 @@ class _BoostAnnoncementScreenState extends State<BoostAnnoncementScreen>
   }
 
   Widget _buildBoostsList(List<Boost> boosts) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Choisissez votre niveau de boost',
+            'Choisissez votre boost',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Plus le niveau est élevé, plus votre annonce sera visible',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
-              fontSize: 14,
+          const SizedBox(height: 16),
+          // Options de boost payants
+          Expanded(
+            child: ListView.separated(
+              physics: const BouncingScrollPhysics(),
+              itemCount: boosts.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 16),
+              itemBuilder: (context, index) {
+                final boost = boosts[index];
+                // Vérifier si c'est le boost TOP pour le marquer comme recommandé
+                final isRecommended = boost.title.toUpperCase() == 'TOP';
+                // Vérifier si c'est le boost SILVER (gratuit et illimité)
+                final isFreeBoost = boost.title.toUpperCase() == 'SILVER';
+
+                return BoostOptionCard(
+                  boost: boost,
+                  isRecommended: isRecommended,
+                  isFreeBoost: isFreeBoost,
+                  onTap: () => isFreeBoost
+                      ? _showFreeBoostDirectly()
+                      : _showBoostDayNumbers(boost),
+                );
+              },
             ),
           ),
-          const SizedBox(height: 24),
-          ...boosts.asMap().entries.map((entry) {
-            final index = entry.key;
-            final boost = entry.value;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: BoostOptionCard(
-                boost: boost,
-                onTap: () => _showBoostDayNumbers(boost),
-                isRecommended: index == 1, // Recommend the second option
-              ),
-            )
-                .animate(delay: (index * 100).ms)
-                .fadeIn(duration: 600.ms)
-                .slideX(begin: 0.3, end: 0);
-          }).toList(),
-          const SizedBox(height: 100), // Space for skip button
         ],
       ),
-    );
+    ).animate().fadeIn(duration: 600.ms, delay: 400.ms);
   }
 
-  Widget _buildSkipButton() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.transparent,
-            Colors.black.withValues(alpha: 0.3),
-          ],
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: GestureDetector(
-            onTap: _isProcessing ? null : _skipBoost,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (_isProcessing) ...[
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
-                  Text(
-                    _isProcessing
-                        ? 'Publication en cours...'
-                        : 'Publier sans boost',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  if (!_isProcessing) ...[
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.arrow_forward_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    ).animate().fadeIn(duration: 500.ms, delay: 800.ms);
+  void _showFreeBoostDirectly() {
+    HapticFeedback.lightImpact();
+    // Pour le boost SILVER (gratuit et illimité), on applique directement sans sélection de période
+    final controller = GetIt.I.get<BoostController>();
+    // Trouver le boost SILVER dans la liste
+    final boosts = controller.boostsListState.value.data ?? [];
+    final silverBoost = boosts.firstWhere(
+      (boost) => boost.title.toUpperCase() == 'SILVER',
+      orElse: () => boosts.first, // Fallback si non trouvé
+    );
+
+    controller.changeBoost(silverBoost);
+
+    // Naviguer directement vers le processus de boost sans sélection de période
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (builderContext) {
+        return const BoostAnnonceBottomSheet();
+      },
+    );
   }
 
   void _showBoostDayNumbers(Boost boost) {
@@ -575,35 +640,6 @@ class _BoostAnnoncementScreenState extends State<BoostAnnoncementScreen>
       },
     );
     // Removed the .then() callback that was causing navigation issues
-  }
-
-  void _skipBoost() async {
-    if (_isProcessing) return;
-
-    setState(() => _isProcessing = true);
-    HapticFeedback.mediumImpact();
-
-    try {
-      final controller = GetIt.I.get<BoostController>();
-      await controller.publishAnnonceWithoutBoost(widget.annonces.id);
-
-      if (mounted) {
-        HapticFeedback.mediumImpact();
-        _navigateToProfile();
-      }
-    } catch (e) {
-      if (mounted) {
-        HapticFeedback.heavyImpact();
-        VAppAlert.showErrorSnackBar(
-          message: "Erreur lors de la publication",
-          context: context,
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-      }
-    }
   }
 
   void _navigateToProfile() {
@@ -625,12 +661,14 @@ class BoostOptionCard extends StatelessWidget {
   final Boost boost;
   final VoidCallback onTap;
   final bool isRecommended;
+  final bool isFreeBoost;
 
   const BoostOptionCard({
     super.key,
     required this.boost,
     required this.onTap,
     this.isRecommended = false,
+    this.isFreeBoost = false,
   });
 
   @override
@@ -759,14 +797,18 @@ class BoostOptionCard extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(
-                        Icons.info_outline_rounded,
+                        isFreeBoost
+                            ? Icons.all_inclusive_rounded
+                            : Icons.info_outline_rounded,
                         color: Colors.white.withValues(alpha: 0.6),
                         size: 16,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Appuyez pour choisir la durée du boost',
+                          isFreeBoost
+                              ? 'Boost gratuit et illimité - Actif immédiatement'
+                              : 'Appuyez pour choisir la durée du boost',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.6),
                             fontSize: 12,

@@ -23,6 +23,7 @@ class ErrorInterceptor implements ErrorConverter {
 
 void throwIfNotSuccess(Response res) {
   if (res.isSuccessful) return;
+
   if (res.statusCode == 400) {
     throw VChatHttpBadRequest(
       vChatException: (res.error! as Map<String, dynamic>)['data'].toString(),
@@ -49,7 +50,34 @@ void throwIfNotSuccess(Response res) {
 }
 
 Map<String, dynamic> extractDataFromResponse(Response res) {
-  return (res.body as Map<String, dynamic>)['data'] as Map<String, dynamic>;
+  print("🔍 [extractDataFromResponse] Starting extraction");
+  print(
+      "🔍 [extractDataFromResponse] Response body type: ${res.body.runtimeType}");
+  print("🔍 [extractDataFromResponse] Response body: ${res.body}");
+
+  try {
+    final body = res.body as Map<String, dynamic>;
+    print("🔍 [extractDataFromResponse] Body casted to Map successfully");
+    print("🔍 [extractDataFromResponse] Body keys: ${body.keys}");
+
+    final data = body['data'];
+    print("🔍 [extractDataFromResponse] Data type: ${data.runtimeType}");
+    print("🔍 [extractDataFromResponse] Data value: $data");
+
+    if (data is! Map<String, dynamic>) {
+      print(
+          "🔍 [extractDataFromResponse] ❌ ERROR: data is NOT a Map<String, dynamic>");
+      print("🔍 [extractDataFromResponse] ❌ Actual type: ${data.runtimeType}");
+      throw TypeError();
+    }
+
+    print("🔍 [extractDataFromResponse] ✅ Data casted to Map successfully");
+    return data;
+  } catch (e, stackTrace) {
+    print("🔍 [extractDataFromResponse] ❌ EXCEPTION occurred: $e");
+    print("🔍 [extractDataFromResponse] ❌ Stack trace: $stackTrace");
+    rethrow;
+  }
 }
 
 class AuthInterceptor implements Interceptor {

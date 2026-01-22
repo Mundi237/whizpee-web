@@ -1,14 +1,14 @@
 import 'dart:ui';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
+import 'package:super_up/app/core/widgets/app_header_logo.dart';
+import 'package:super_up/app/core/widgets/skeleton_loaders.dart';
 import 'package:super_up/app/modules/annonces/cores/appstate.dart';
 import 'package:super_up/app/modules/annonces/datas/services/api_services.dart';
 import 'package:super_up/app/modules/annonces/presentation/annoncment_component.dart';
-import 'package:super_up/app/core/widgets/app_header_logo.dart';
 import 'package:super_up/app/modules/annonces/providers/annonce_controller.dart';
 import 'package:super_up/app/modules/annonces/providers/credit_provider.dart';
 import 'package:super_up_core/super_up_core.dart';
@@ -26,7 +26,8 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
     with SingleTickerProviderStateMixin {
   String? _selectedLocation;
   DateTime? _selectedDate;
-  int _selectedTabIndex = 0;
+  int _selectedSortIndex =
+      0; // 0: Plus récent, 1: Prix croissant, 2: Prix décroissant, 3: Plus vues
   late AnimationController _floatController;
   final _searchController = TextEditingController();
 
@@ -105,13 +106,29 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
                   valueListenable: GetIt.I.get<AnnonceController>().citiesList,
                   builder: (context, state, child) {
                     if (state.isLoading) {
-                      return const Center(child: CircularProgressIndicator());
+                      return ListView.builder(
+                        itemCount: 3,
+                        itemBuilder: (context, index) => Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: SkeletonLoaders.textLine(
+                              width: double.infinity, height: 16),
+                        ),
+                      );
                     }
                     final cities =
                         GetIt.I.get<AnnonceController>().villes.value;
                     if (cities.isEmpty) {
                       GetIt.I.get<AnnonceController>().getCities();
-                      return const Center(child: CircularProgressIndicator());
+                      return ListView.builder(
+                        itemCount: 3,
+                        itemBuilder: (context, index) => Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: SkeletonLoaders.textLine(
+                              width: double.infinity, height: 16),
+                        ),
+                      );
                     }
                     return ListView.builder(
                       itemCount: cities.length,
@@ -213,9 +230,129 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
                     }
                   },
                 ),
+                const SizedBox(height: 16),
+                _buildFilterOption(
+                  icon: Icons.sort_rounded,
+                  title: 'Trier par',
+                  value: _getSortLabel(_selectedSortIndex),
+                  onTap: () => _showSortPicker(modalContext),
+                ),
                 const SizedBox(height: 24),
               ],
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  bool _hasActiveFilters() {
+    return _selectedLocation != null ||
+        _selectedDate != null ||
+        _selectedSortIndex != 0 ||
+        _searchController.text.isNotEmpty;
+  }
+
+  String _getSortLabel(int index) {
+    switch (index) {
+      case 0:
+        return 'Plus récent';
+      case 1:
+        return 'Prix croissant';
+      case 2:
+        return 'Prix décroissant';
+      case 3:
+        return 'Plus vues';
+      default:
+        return 'Plus récent';
+    }
+  }
+
+  void _showSortPicker(BuildContext modalContext) {
+    final sortOptions = [
+      {'label': 'Plus récent', 'icon': Icons.access_time_rounded},
+      {'label': 'Prix croissant', 'icon': Icons.trending_up_rounded},
+      {'label': 'Prix décroissant', 'icon': Icons.trending_down_rounded},
+      {'label': 'Plus vues', 'icon': Icons.visibility_rounded},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                height: 4,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Trier par',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              ...sortOptions.asMap().entries.map((entry) {
+                final index = entry.key;
+                final option = entry.value;
+                final isSelected = _selectedSortIndex == index;
+
+                return ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppTheme.primaryGreen.withValues(alpha: 0.2)
+                          : Colors.white.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      option['icon'] as IconData,
+                      color: isSelected
+                          ? AppTheme.primaryGreen
+                          : Colors.white.withValues(alpha: 0.6),
+                      size: 20,
+                    ),
+                  ),
+                  title: Text(
+                    option['label'] as String,
+                    style: TextStyle(
+                      color: isSelected ? AppTheme.primaryGreen : Colors.white,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? Icon(Icons.check_rounded, color: AppTheme.primaryGreen)
+                      : null,
+                  onTap: () {
+                    setState(() {
+                      _selectedSortIndex = index;
+                    });
+                    Navigator.pop(context);
+                    Navigator.pop(modalContext);
+                  },
+                );
+              }).toList(),
+              const SizedBox(height: 20),
+            ],
           ),
         );
       },
@@ -398,28 +535,51 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
                           // Filter button
                           GestureDetector(
                             onTap: _showFilterModal,
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.25),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.25),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.tune_rounded,
+                                    color: AppTheme.primaryGreen,
+                                    size: 20,
+                                  ),
                                 ),
-                              ),
-                              child: Icon(
-                                Icons.tune_rounded,
-                                color: AppTheme.primaryGreen,
-                                size: 20,
-                              ),
+                                // Active filters indicator
+                                if (_hasActiveFilters())
+                                  Positioned(
+                                    top: -2,
+                                    right: -2,
+                                    child: Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.shade400,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.red.shade400
+                                                .withValues(alpha: 0.5),
+                                            blurRadius: 4,
+                                            spreadRadius: 1,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    // Tabs
-                    SliverToBoxAdapter(
-                      child: _buildTabsSection(context),
                     ),
                     // Search bar
                     SliverToBoxAdapter(
@@ -428,10 +588,10 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
                     // Announcements list
                     SliverToBoxAdapter(
                       child: ListingsBody(
-                        selectedTab: _selectedTabIndex,
                         searchQuery: _searchController.text,
                         locationFilter: _selectedLocation,
                         dateFilter: _selectedDate,
+                        sortIndex: _selectedSortIndex,
                       ),
                     ),
                     const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
@@ -442,68 +602,6 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTabsSection(BuildContext context) {
-    final tabs = ['Toutes', 'Boostées'];
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25),
-          color: Colors.white.withValues(alpha: 0.05),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.1),
-          ),
-        ),
-        child: Row(
-          children: List.generate(tabs.length, (index) {
-            final isSelected = _selectedTabIndex == index;
-            return Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  setState(() => _selectedTabIndex = index);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOut,
-                  margin: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(21),
-                    gradient: isSelected
-                        ? LinearGradient(
-                            colors: [
-                              AppTheme.primaryGreen,
-                              AppTheme.primaryGreen.withValues(alpha: 0.8),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                        : null,
-                    color: isSelected ? null : Colors.transparent,
-                  ),
-                  child: Center(
-                    child: Text(
-                      tabs[index],
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ).animate().fadeIn(duration: 600.ms, delay: 200.ms),
     );
   }
 
@@ -551,34 +649,30 @@ class _AnnouncementsPageState extends State<AnnouncementsPage>
 }
 
 class ListingsBody extends StatelessWidget {
-  final int selectedTab;
   final String searchQuery;
   final String? locationFilter;
   final DateTime? dateFilter;
+  final int sortIndex;
 
   const ListingsBody({
     super.key,
-    this.selectedTab = 0,
     this.searchQuery = '',
     this.locationFilter,
     this.dateFilter,
+    this.sortIndex = 0,
   });
 
   List<Annonces> _filterAnnonces(List<Annonces> list) {
     var filtered = list;
-
-    // Filter by Tab
-    if (selectedTab == 1) {
-      // Boostées
-      filtered = filtered.where((a) => a.isBoosted).toList();
-    }
 
     // Filter by Search
     if (searchQuery.isNotEmpty) {
       final query = searchQuery.toLowerCase();
       filtered = filtered.where((a) {
         return a.title.toLowerCase().contains(query) ||
-            a.description.toLowerCase().contains(query);
+            a.description.toLowerCase().contains(query) ||
+            (a.ville?.toLowerCase().contains(query) ?? false) ||
+            (a.quartier?.toLowerCase().contains(query) ?? false);
       }).toList();
     }
 
@@ -597,6 +691,40 @@ class ListingsBody extends StatelessWidget {
       }).toList();
     }
 
+    // Apply Sorting
+    switch (sortIndex) {
+      case 0: // Plus récent
+        filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+      case 1: // Prix croissant
+        filtered.sort((a, b) {
+          final priceA = a.price ?? 0;
+          final priceB = b.price ?? 0;
+          if (priceA == 0 && priceB == 0) return 0;
+          if (priceA == 0) return 1; // Les articles gratuits à la fin
+          if (priceB == 0) return -1;
+          return priceA.compareTo(priceB);
+        });
+        break;
+      case 2: // Prix décroissant
+        filtered.sort((a, b) {
+          final priceA = a.price ?? 0;
+          final priceB = b.price ?? 0;
+          if (priceA == 0 && priceB == 0) return 0;
+          if (priceA == 0) return 1; // Les articles gratuits à la fin
+          if (priceB == 0) return -1;
+          return priceB.compareTo(priceA);
+        });
+        break;
+      case 3: // Plus vues
+        filtered.sort((a, b) {
+          final viewsA = a.views ?? 0;
+          final viewsB = b.views ?? 0;
+          return viewsB.compareTo(viewsA);
+        });
+        break;
+    }
+
     return filtered;
   }
 
@@ -608,10 +736,14 @@ class ListingsBody extends StatelessWidget {
       valueListenable: controller.annoncesListState,
       builder: (_, state, __) {
         if (state.isLoading) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 100),
-              child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                SkeletonLoaders.filterTabs(),
+                SkeletonLoaders.searchBar(),
+                SkeletonLoaders.listSkeleton(itemCount: 4),
+              ],
             ),
           );
         }

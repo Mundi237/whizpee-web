@@ -95,7 +95,7 @@ class PaymentApiService {
   }) async {
     try {
       final response = await dio.post(
-        '/payment/withdraw/$paymentProvider',
+        '/payment/withdrawal/$paymentProvider',
         data: {
           'amount': amount,
           'phoneNumber': phoneNumber,

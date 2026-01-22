@@ -9,7 +9,7 @@ final fakeLocalRooms = [
     "tb_r_id": "rid1",
     "tb_r_room_type": "s",
     "tb_r_title": "user 2",
-    "tb_r_img": "default_user_image.png",
+    "tb_r_img": "",
     "tb_r_is_archived": false,
     "tb_r_is_muted": false,
     "tb_r_peer_id": "user2Id",

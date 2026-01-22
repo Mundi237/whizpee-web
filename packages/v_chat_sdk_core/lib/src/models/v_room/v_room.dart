@@ -122,7 +122,7 @@ class VRoom {
       : id = map['rId'] as String,
         transTo = map['tTo'] as String?,
         title = map['t'] as String,
-        thumbImage = map['img'] as String,
+        thumbImage = (map['img'] as String?) ?? '',
         mentionsCount = map['mentionsCount'] as int,
         isArchived = map['isA'] as bool,
         isOneSeen = (map['isOneSeen'] as bool?) ?? false,

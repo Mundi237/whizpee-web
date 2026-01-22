@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "991808329176",
+    "project_id": "whizpee-91213",
+    "storage_bucket": "whizpee-91213.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:991808329176:android:9cc46813340c6a65db8ead",
+        "android_client_info": {
+          "package_name": "com.whizpee.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "991808329176-orai9gdub0ooe4patd8s00399inftr1t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.whizpee.app",
+            "certificate_hash": "3819ff87395a639d8f40d25a959062a472ba0bf0"
+          }
+        },
+        {
+          "client_id": "991808329176-jm3cacgj2unguqlkcmffdp3uqthnqtvu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9n4G15UKOzW9hecZ0VymLSDvnx4AWuqo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "991808329176-jm3cacgj2unguqlkcmffdp3uqthnqtvu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "991808329176-cvdeinskb3pjsgdsqej9vaqirv2abkkc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.whizpee.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

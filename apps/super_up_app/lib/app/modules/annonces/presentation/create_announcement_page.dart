@@ -1289,28 +1289,6 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage>
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              Navigator.of(context).pop();
-            },
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                ),
-              ),
-              child: const Icon(
-                Icons.close_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1945,7 +1923,8 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage>
                                     }
                                   },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 16, horizontal: 8),
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
@@ -1966,34 +1945,38 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage>
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   if (value.isLoading || _isSubmitting) ...[
                                     SizedBox(
-                                      width: 20,
-                                      height: 20,
+                                      width: 16,
+                                      height: 16,
                                       child: CircularProgressIndicator(
                                         color: Colors.white,
                                         strokeWidth: 2,
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(width: 8),
                                   ],
-                                  Text(
-                                    value.isLoading || _isSubmitting
-                                        ? 'Création en cours...'
-                                        : 'Créer l\'annonce',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
+                                  Flexible(
+                                    child: Text(
+                                      value.isLoading || _isSubmitting
+                                          ? 'Création...'
+                                          : 'Créer l\'annonce',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                   if (!value.isLoading && !_isSubmitting) ...[
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: 4),
                                     Icon(
                                       Icons.check_rounded,
                                       color: Colors.white,
-                                      size: 20,
+                                      size: 16,
                                     ),
                                   ],
                                 ],

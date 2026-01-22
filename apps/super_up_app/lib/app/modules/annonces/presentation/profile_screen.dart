@@ -1,15 +1,17 @@
+import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get_it/get_it.dart';
+import 'package:super_up/app/core/widgets/app_header_logo.dart';
 import 'package:super_up/app/modules/annonces/cores/appstate.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart' show Annonces;
 import 'package:super_up/app/modules/annonces/presentation/announcement_detail_page.dart';
 import 'package:super_up/app/modules/annonces/presentation/announcements_page.dart';
 import 'package:super_up/app/modules/annonces/presentation/credits/new_wallet_page.dart';
 import 'package:super_up/app/modules/annonces/providers/annonce_controller.dart';
-// import 'package:super_up/app/modules/home/home_controller/views/pages/announcements_page.dart';
-// import 'package:super_up/app/modules/home/home_controller/views/pages/create_announcement_page.dart';
 import 'package:super_up/app/modules/home/mobile/settings_tab/views/settings_tab_view.dart';
 import 'package:super_up/app/modules/home/settings_modules/my_account/views/my_account_page.dart';
 import 'package:super_up_core/super_up_core.dart';
@@ -23,11 +25,19 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen>
+    with SingleTickerProviderStateMixin {
   late List<Map> optionsList;
+  late AnimationController _floatController;
 
   @override
   initState() {
+    super.initState();
+    _floatController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    )..repeat(reverse: true);
+
     try {
       final AnnonceController controller = GetIt.I.get<AnnonceController>();
       optionsList = [];
@@ -44,303 +54,723 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       print(e);
     }
-    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _floatController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final controller = GetIt.I.get<AnnonceController>();
+    final isDark = VThemeListener.I.isDarkMode;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Whispee"),
-        elevation: 0.0,
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: GestureDetector(
-              onTap: () {
-                context.toPage(SettingsTabView());
-              },
-              child: SvgPicture.string(
-                settnigsIcons,
-                color: Colors.white,
-                width: 27,
-                height: 27,
-              ),
-            ),
-          )
-        ],
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(20),
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await controller.getAnnonces(true);
-            optionsList = [
-              {'title': 'Vue d’annonce', "value": controller.totalviews},
-              {'title': 'Clique sur annonce', "value": "0"},
-              {'title': 'CTA Message', "value": "0"},
-            ];
-            setState(() {});
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                      color: Colors.grey.shade900,
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                          image: AssetImage("assets/ic_addphoto.png"))),
-                  child: VCircleAvatar(
-                    radius: 70,
-                    vFileSource: VPlatformFile.fromUrl(
-                      networkUrl: AppAuth.myProfile.baseUser.userImage,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  AppAuth.myProfile.baseUser.fullName,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 10,
-                  children: [
-                    for (var option in optionsList)
-                      Expanded(
-                        child: Column(
-                          spacing: 10,
-                          children: [
-                            Text(
-                              option['value'].toString(),
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              option['title'],
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white54),
-                            ),
+      extendBody: true,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [
+                    const Color(0xFF0D0D0D),
+                    const Color(0xFF1A0E2E),
+                    const Color(0xFF2D1B4E),
+                  ]
+                : [
+                    const Color(0xFF000000),
+                    const Color(0xFF1A0E2E),
+                    const Color(0xFF3D2257),
+                  ],
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // Background glassmorphism circles
+              Positioned(
+                top: -100,
+                right: -100,
+                child: AnimatedBuilder(
+                  animation: _floatController,
+                  builder: (context, child) {
+                    return Container(
+                      width: 280 + (30 * _floatController.value),
+                      height: 280 + (30 * _floatController.value),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            AppTheme.primaryGreen.withValues(alpha: 0.12),
+                            Colors.transparent,
                           ],
                         ),
                       ),
-                  ],
+                    );
+                  },
                 ),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 8,
-                  children: [
-                    Expanded(
-                      flex: 5,
-                      child: GestureDetector(
-                        onTap: () async {
-                          if (kIsWeb) {
-                            context.toPage(AnnouncementsPage());
-                            return;
-                          }
-                          // GetIt.I.get<HomeController>().changeIndex(0);
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            color: Colors.red,
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Annonces",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                          ),
+              ),
+              Positioned(
+                bottom: -120,
+                left: -80,
+                child: AnimatedBuilder(
+                  animation: _floatController,
+                  builder: (context, child) {
+                    return Container(
+                      width: 300 - (30 * _floatController.value),
+                      height: 300 - (30 * _floatController.value),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            Colors.purple.withValues(alpha: 0.1),
+                            Colors.transparent,
+                          ],
                         ),
                       ),
-                    ),
-                    Expanded(
-                      flex: 5,
-                      child: GestureDetector(
-                        onTap: () {
-                          context.toPage(const NewWalletPage());
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            color: Colors.grey.shade800,
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Wallet",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: GestureDetector(
-                        onTap: () {
-                          // context.toPage(CreateAnnouncementPage());
-                          context.toPage(MyAccountPage());
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            color: Colors.grey.shade800,
-                          ),
-                          child: Center(
-                              child: Icon(
-                            Icons.edit,
-                            size: 28,
-                            color: Colors.white,
-                          )),
-                        ),
-                      ),
-                    )
-                  ],
+                    );
+                  },
                 ),
-                SizedBox(height: 10),
-                Divider(),
-                SizedBox(height: 15),
-                ValueListenableBuilder<AppState<List<Annonces>>>(
-                    valueListenable: controller.myAnnoncesListState,
-                    builder: (_, state, __) {
-                      if (state.isLoading) {
-                        return Center(
-                          child: Column(
-                            children: [
-                              SizedBox(height: 50),
-                              CircularProgressIndicator(),
-                            ],
-                          ),
-                        );
-                      }
-                      if (state.hasError) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(height: 50),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                child: Text(
-                                  state.errorModel!.error,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      color: Colors.red.shade500, fontSize: 18),
-                                ),
-                              ),
-                              SizedBox(
-                                height: 20,
-                              ),
-                              IconButton(
-                                  onPressed: () {
-                                    controller.getAnnonces(true);
-                                  },
-                                  icon: Icon(
-                                    Icons.refresh,
-                                    size: 30,
-                                  ))
-                            ],
-                          ),
-                        );
-                      }
-                      if ((state.data ?? []).isEmpty) {
-                        return Center(
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 50.0),
-                            child: Column(
-                              children: [
-                                Text(
-                                  'Aucune annonce ne correspond à vos filtres.',
-                                  style: TextStyle(
-                                      color: Colors.grey, fontSize: 18),
-                                  textAlign: TextAlign.center,
-                                ),
-                                SizedBox(
-                                  height: 20,
-                                ),
-                                IconButton(
-                                    onPressed: () {
-                                      controller.getAnnonces(true);
-                                    },
-                                    icon: Icon(
-                                      Icons.refresh,
-                                      size: 30,
-                                    ))
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-
-                      final List<Annonces> announcements = state.data!;
-
-                      return GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 15,
-                          mainAxisSpacing: 15,
-                        ),
-                        itemCount: announcements.length,
-                        itemBuilder: (_, index) {
-                          final announcement = announcements[index];
-                          return GestureDetector(
+              ),
+              // Main content
+              RefreshIndicator(
+                onRefresh: () async {
+                  HapticFeedback.mediumImpact();
+                  await controller.getAnnonces(true);
+                  optionsList = [
+                    {'title': 'Vue d\'annonce', "value": controller.totalviews},
+                    {'title': 'Clique sur annonce', "value": "0"},
+                    {'title': 'CTA Message', "value": "0"},
+                  ];
+                  setState(() {});
+                },
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    // Premium Header with AppHeaderLogo
+                    SliverToBoxAdapter(
+                      child: AppHeaderLogo(
+                        icon: Icons.person_rounded,
+                        title: "Profile",
+                        actions: [
+                          // Settings button
+                          GestureDetector(
                             onTap: () {
-                              context.toPage(
-                                AnnouncementDetailPage(
-                                  announcement: announcement,
-                                ),
-                              );
+                              HapticFeedback.lightImpact();
+                              context.toPage(SettingsTabView());
                             },
                             child: Container(
+                              padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.grey[800],
-                                borderRadius: BorderRadius.circular(10),
-                                image: kIsWeb
-                                    ? DecorationImage(
-                                        image: NetworkImage(
-                                            announcement.images?.firstOrNull ??
-                                                ''),
-                                        fit: BoxFit.cover,
-                                      )
-                                    : DecorationImage(
-                                        image: CachedNetworkImageProvider(
-                                            announcement.images?.firstOrNull ??
-                                                ''),
-                                        fit: BoxFit.cover,
-                                      ),
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.25),
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.settings_rounded,
+                                color: AppTheme.primaryGreen,
+                                size: 20,
                               ),
                             ),
-                          );
-                        },
-                      );
-                    }),
-                SizedBox(height: 20),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Profile Card
+                    SliverToBoxAdapter(
+                      child: _buildProfileCard(),
+                    ),
+                    // Stats Card
+                    // SliverToBoxAdapter(
+                    //   child: _buildStatsCard(),
+                    // ),
+                    // Action Buttons
+                    SliverToBoxAdapter(
+                      child: _buildActionButtons(),
+                    ),
+                    // My Announcements
+                    SliverToBoxAdapter(
+                      child: _buildMyAnnouncements(controller),
+                    ),
+                    const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.1),
+            Colors.white.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.15),
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                // Profile Avatar
+                Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryGreen.withValues(alpha: 0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: VCircleAvatar(
+                        radius: 60,
+                        vFileSource: VPlatformFile.fromUrl(
+                          networkUrl: AppAuth.myProfile.baseUser.userImage,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppTheme.primaryGreen,
+                              AppTheme.primaryGreen.withValues(alpha: 0.8),
+                            ],
+                          ),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: Icon(
+                          Icons.verified_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  AppAuth.myProfile.baseUser.fullName,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white.withValues(alpha: 0.95),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppTheme.primaryGreen.withValues(alpha: 0.2),
+                        AppTheme.primaryGreen.withValues(alpha: 0.1),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    'Membre Actif',
+                    style: TextStyle(
+                      color: AppTheme.primaryGreen,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
         ),
       ),
-    );
+    ).animate().fadeIn(duration: 600.ms, delay: 200.ms);
+  }
+
+  Widget _buildStatsCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.08),
+            Colors.white.withValues(alpha: 0.03),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.12),
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                for (int i = 0; i < optionsList.length; i++) ...[
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppTheme.primaryGreen.withValues(alpha: 0.2),
+                                AppTheme.primaryGreen.withValues(alpha: 0.1),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            optionsList[i]['value'].toString(),
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white.withValues(alpha: 0.95),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          optionsList[i]['title'],
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (i < optionsList.length - 1) const SizedBox(width: 16),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    ).animate().fadeIn(duration: 600.ms, delay: 300.ms);
+  }
+
+  Widget _buildActionButtons() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Row(
+        children: [
+          // Announcements Button
+          Expanded(
+            flex: 3,
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                if (kIsWeb) {
+                  context.toPage(AnnouncementsPage());
+                  return;
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.primaryGreen,
+                      AppTheme.primaryGreen.withValues(alpha: 0.8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.campaign_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Mes Annonces",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Wallet Button
+          Expanded(
+            flex: 2,
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                context.toPage(const NewWalletPage());
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withValues(alpha: 0.15),
+                      Colors.white.withValues(alpha: 0.05),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.account_balance_wallet_rounded,
+                      color: Colors.white.withValues(alpha: 0.9),
+                      size: 18,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Wallet",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Edit Profile Button
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context.toPage(MyAccountPage());
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.15),
+                    Colors.white.withValues(alpha: 0.05),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Icon(
+                Icons.edit_rounded,
+                color: Colors.white.withValues(alpha: 0.9),
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 600.ms, delay: 400.ms);
+  }
+
+  Widget _buildMyAnnouncements(AnnonceController controller) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.08),
+            Colors.white.withValues(alpha: 0.03),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.12),
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: ValueListenableBuilder<AppState<List<Annonces>>>(
+            valueListenable: controller.myAnnoncesListState,
+            builder: (_, state, __) {
+              if (state.isLoading) {
+                return Container(
+                  padding: const EdgeInsets.all(40),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        CircularProgressIndicator(
+                          color: AppTheme.primaryGreen,
+                          strokeWidth: 3,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Chargement des annonces...',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              if (state.hasError) {
+                return Container(
+                  padding: const EdgeInsets.all(40),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.error_outline_rounded,
+                            color: Colors.red.shade400,
+                            size: 48,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Erreur de chargement',
+                          style: TextStyle(
+                            color: Colors.red.shade400,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          state.errorModel?.error ?? 'Erreur inconnue',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            HapticFeedback.lightImpact();
+                            controller.getAnnonces(true);
+                          },
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text('Réessayer'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryGreen,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              if ((state.data ?? []).isEmpty) {
+                return Container(
+                  padding: const EdgeInsets.all(40),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.05),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.campaign_outlined,
+                            size: 48,
+                            color: Colors.white.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Aucune annonce',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Vous n\'avez encore publié aucune annonce',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              final List<Annonces> announcements = state.data!;
+
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.campaign_rounded,
+                          color: AppTheme.primaryGreen,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Mes Annonces (${announcements.length})',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 1,
+                      ),
+                      itemCount: announcements.length,
+                      itemBuilder: (_, index) {
+                        final announcement = announcements[index];
+                        return GestureDetector(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            context.toPage(
+                              AnnouncementDetailPage(
+                                announcement: announcement,
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.white.withValues(alpha: 0.1),
+                                  Colors.white.withValues(alpha: 0.05),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.15),
+                              ),
+                              image: kIsWeb
+                                  ? DecorationImage(
+                                      image: NetworkImage(
+                                          announcement.images?.firstOrNull ??
+                                              ''),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : DecorationImage(
+                                      image: CachedNetworkImageProvider(
+                                          announcement.images?.firstOrNull ??
+                                              ''),
+                                      fit: BoxFit.cover,
+                                    ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    ).animate().fadeIn(duration: 600.ms, delay: 500.ms);
   }
 }
 

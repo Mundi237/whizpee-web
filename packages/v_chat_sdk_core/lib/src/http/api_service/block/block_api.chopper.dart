@@ -1,5 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
+// @dart=3.0
 part of 'block_api.dart';
 
 // **************************************************************************
@@ -8,7 +9,7 @@ part of 'block_api.dart';
 
 // coverage:ignore-file
 // ignore_for_file: type=lint
-class _$BlockApi extends BlockApi {_$BlockApi([ChopperClient? client]) { if (client == null) return;
+final class _$BlockApi extends BlockApi {_$BlockApi([ChopperClient? client]) { if (client == null) return;
 this.client = client; }
 
 @override final Type definitionType = BlockApi;

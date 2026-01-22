@@ -148,41 +148,123 @@ class _OnboardingPage3State extends State<OnboardingPage3>
                         .slideY(begin: -0.3, end: 0),
                   ),
                   Expanded(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Column(
-                        children: [
-                          SizedBox(height: size.height * 0.05),
-                          // Icon with glassmorphism
-                          AnimatedBuilder(
-                            animation: _floatController,
-                            builder: (context, child) {
-                              return Transform.translate(
-                                offset: Offset(0, -10 * _floatController.value),
-                                child: Container(
-                                  width: size.width * 0.7,
-                                  height: size.width * 0.7,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: RadialGradient(
-                                      colors: [
-                                        accentColor.withValues(alpha: 0.2),
-                                        Colors.purple.withValues(alpha: 0.15),
-                                        Colors.transparent,
-                                      ],
-                                    ),
-                                  ),
-                                  child: Center(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          physics: const ClampingScrollPhysics(),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: IntrinsicHeight(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Spacer(flex: 1),
+                                  // Icon with glassmorphism
+                                  AnimatedBuilder(
+                                    animation: _floatController,
+                                    builder: (context, child) {
+                                      return Transform.translate(
+                                        offset: Offset(
+                                            0, -10 * _floatController.value),
+                                        child: Container(
+                                          width: size.width * 0.7,
+                                          height: size.width * 0.7,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            gradient: RadialGradient(
+                                              colors: [
+                                                accentColor.withValues(
+                                                    alpha: 0.2),
+                                                Colors.purple
+                                                    .withValues(alpha: 0.15),
+                                                Colors.transparent,
+                                              ],
+                                            ),
+                                          ),
+                                          child: Center(
+                                            child: Container(
+                                              padding: const EdgeInsets.all(52),
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors: [
+                                                    Colors.white.withValues(
+                                                        alpha: 0.12),
+                                                    Colors.white.withValues(
+                                                        alpha: 0.05),
+                                                  ],
+                                                ),
+                                                border: Border.all(
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.15),
+                                                  width: 2,
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: accentColor
+                                                        .withValues(alpha: 0.3),
+                                                    blurRadius: 50,
+                                                    spreadRadius: 5,
+                                                  ),
+                                                ],
+                                              ),
+                                              child: ClipOval(
+                                                child: BackdropFilter(
+                                                  filter: ImageFilter.blur(
+                                                      sigmaX: 15, sigmaY: 15),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      gradient: RadialGradient(
+                                                        colors: [
+                                                          accentColor
+                                                              .withValues(
+                                                                  alpha: 0.3),
+                                                          accentColor
+                                                              .withValues(
+                                                                  alpha: 0.1),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    child: Icon(
+                                                      Icons.favorite_rounded,
+                                                      size: 100,
+                                                      color: accentColor,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                      .animate()
+                                      .fadeIn(duration: 800.ms, delay: 200.ms)
+                                      .scale(
+                                        begin: const Offset(0.8, 0.8),
+                                        duration: 1000.ms,
+                                        curve: Curves.easeOutBack,
+                                      ),
+                                  SizedBox(height: size.height * 0.08),
+                                  // Content card
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 32.0),
                                     child: Container(
-                                      padding: const EdgeInsets.all(52),
+                                      padding: const EdgeInsets.all(32),
                                       decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
+                                        borderRadius: BorderRadius.circular(28),
                                         gradient: LinearGradient(
                                           begin: Alignment.topLeft,
                                           end: Alignment.bottomRight,
                                           colors: [
-                                            Colors.white
-                                                .withValues(alpha: 0.12),
+                                            Colors.white.withValues(alpha: 0.1),
                                             Colors.white
                                                 .withValues(alpha: 0.05),
                                           ],
@@ -190,178 +272,125 @@ class _OnboardingPage3State extends State<OnboardingPage3>
                                         border: Border.all(
                                           color: Colors.white
                                               .withValues(alpha: 0.15),
-                                          width: 2,
+                                          width: 1.5,
                                         ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: accentColor.withValues(
-                                                alpha: 0.3),
-                                            blurRadius: 50,
-                                            spreadRadius: 5,
+                                            color: Colors.black
+                                                .withValues(alpha: 0.2),
+                                            blurRadius: 30,
+                                            offset: const Offset(0, 10),
                                           ),
                                         ],
                                       ),
-                                      child: ClipOval(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(28),
                                         child: BackdropFilter(
                                           filter: ImageFilter.blur(
-                                              sigmaX: 15, sigmaY: 15),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              gradient: RadialGradient(
-                                                colors: [
-                                                  accentColor.withValues(
-                                                      alpha: 0.3),
-                                                  accentColor.withValues(
-                                                      alpha: 0.1),
-                                                ],
-                                              ),
-                                            ),
-                                            child: Icon(
-                                              Icons.favorite_rounded,
-                                              size: 100,
-                                              color: accentColor,
-                                            ),
+                                              sigmaX: 12, sigmaY: 12),
+                                          child: Column(
+                                            children: [
+                                              // Feature badge
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 8,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                  gradient: LinearGradient(
+                                                    colors: [
+                                                      accentColor.withValues(
+                                                          alpha: 0.3),
+                                                      accentColor.withValues(
+                                                          alpha: 0.15),
+                                                    ],
+                                                  ),
+                                                  border: Border.all(
+                                                    color: accentColor
+                                                        .withValues(alpha: 0.4),
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons
+                                                          .auto_awesome_rounded,
+                                                      size: 16,
+                                                      color: accentColor,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      "Expérience Unique",
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: accentColor,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                                  .animate()
+                                                  .fadeIn(
+                                                      duration: 500.ms,
+                                                      delay: 600.ms)
+                                                  .scale(
+                                                      begin: const Offset(
+                                                          0.8, 0.8)),
+                                              const SizedBox(height: 24),
+                                              Text(
+                                                "Votre aventure, vos règles",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontSize: 28,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                  height: 1.2,
+                                                  letterSpacing: -0.5,
+                                                ),
+                                              )
+                                                  .animate()
+                                                  .fadeIn(
+                                                      duration: 600.ms,
+                                                      delay: 700.ms)
+                                                  .slideY(begin: 0.2, end: 0),
+                                              const SizedBox(height: 16),
+                                              Text(
+                                                "Trouvez des rencontres authentiques et créez des connexions qui comptent. Whizpee, l'app de rencontre qui vous ressemble.",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.75),
+                                                  height: 1.6,
+                                                  letterSpacing: 0.2,
+                                                ),
+                                              )
+                                                  .animate()
+                                                  .fadeIn(
+                                                      duration: 600.ms,
+                                                      delay: 900.ms)
+                                                  .slideY(begin: 0.2, end: 0),
+                                            ],
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            },
-                          )
-                              .animate()
-                              .fadeIn(duration: 800.ms, delay: 200.ms)
-                              .scale(
-                                begin: const Offset(0.8, 0.8),
-                                duration: 1000.ms,
-                                curve: Curves.easeOutBack,
-                              ),
-                          SizedBox(height: size.height * 0.08),
-                          // Content card
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 32.0),
-                            child: Container(
-                              padding: const EdgeInsets.all(32),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(28),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Colors.white.withValues(alpha: 0.1),
-                                    Colors.white.withValues(alpha: 0.05),
-                                  ],
-                                ),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.15),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.2),
-                                    blurRadius: 30,
-                                    offset: const Offset(0, 10),
-                                  ),
+                                  const Spacer(flex: 1),
                                 ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(28),
-                                child: BackdropFilter(
-                                  filter:
-                                      ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                                  child: Column(
-                                    children: [
-                                      // Feature badge
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              accentColor.withValues(
-                                                  alpha: 0.3),
-                                              accentColor.withValues(
-                                                  alpha: 0.15),
-                                            ],
-                                          ),
-                                          border: Border.all(
-                                            color: accentColor.withValues(
-                                                alpha: 0.4),
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.auto_awesome_rounded,
-                                              size: 16,
-                                              color: accentColor,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              "Expérience Unique",
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                                color: accentColor,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                          .animate()
-                                          .fadeIn(
-                                              duration: 500.ms, delay: 600.ms)
-                                          .scale(begin: const Offset(0.8, 0.8)),
-                                      const SizedBox(height: 24),
-                                      Text(
-                                        "Votre aventure, vos règles",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                          height: 1.2,
-                                          letterSpacing: -0.5,
-                                        ),
-                                      )
-                                          .animate()
-                                          .fadeIn(
-                                              duration: 600.ms, delay: 700.ms)
-                                          .slideY(begin: 0.2, end: 0),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        "Trouvez des rencontres authentiques et créez des connexions qui comptent. Whizpee, l'app de rencontre qui vous ressemble.",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: Colors.white
-                                              .withValues(alpha: 0.75),
-                                          height: 1.6,
-                                          letterSpacing: 0.2,
-                                        ),
-                                      )
-                                          .animate()
-                                          .fadeIn(
-                                              duration: 600.ms, delay: 900.ms)
-                                          .slideY(begin: 0.2, end: 0),
-                                    ],
-                                  ),
-                                ),
                               ),
                             ),
                           ),
-                          const SizedBox(height: 40),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   ),
                   // Bottom navigation

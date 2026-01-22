@@ -148,43 +148,125 @@ class _OnbordingPage1State extends State<OnbordingPage1>
                   ),
 
                   Expanded(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(height: size.height * 0.05),
-                          // Glassmorphism icon container
-                          AnimatedBuilder(
-                            animation: _floatController,
-                            builder: (context, child) {
-                              return Transform.translate(
-                                offset: Offset(0, -10 * _floatController.value),
-                                child: Container(
-                                  width: size.width * 0.7,
-                                  height: size.width * 0.7,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: RadialGradient(
-                                      colors: [
-                                        AppTheme.primaryGreen
-                                            .withValues(alpha: 0.2),
-                                        Colors.purple.withValues(alpha: 0.15),
-                                        Colors.transparent,
-                                      ],
-                                    ),
-                                  ),
-                                  child: Center(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          physics: const ClampingScrollPhysics(),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: IntrinsicHeight(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Spacer(flex: 1),
+                                  // Glassmorphism icon container
+                                  AnimatedBuilder(
+                                    animation: _floatController,
+                                    builder: (context, child) {
+                                      return Transform.translate(
+                                        offset: Offset(
+                                            0, -10 * _floatController.value),
+                                        child: Container(
+                                          width: size.width * 0.7,
+                                          height: size.width * 0.7,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            gradient: RadialGradient(
+                                              colors: [
+                                                AppTheme.primaryGreen
+                                                    .withValues(alpha: 0.2),
+                                                Colors.purple
+                                                    .withValues(alpha: 0.15),
+                                                Colors.transparent,
+                                              ],
+                                            ),
+                                          ),
+                                          child: Center(
+                                            child: Container(
+                                              padding: const EdgeInsets.all(52),
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors: [
+                                                    Colors.white.withValues(
+                                                        alpha: 0.12),
+                                                    Colors.white.withValues(
+                                                        alpha: 0.05),
+                                                  ],
+                                                ),
+                                                border: Border.all(
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.15),
+                                                  width: 2,
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: AppTheme.primaryGreen
+                                                        .withValues(alpha: 0.3),
+                                                    blurRadius: 50,
+                                                    spreadRadius: 5,
+                                                  ),
+                                                ],
+                                              ),
+                                              child: ClipOval(
+                                                child: BackdropFilter(
+                                                  filter: ImageFilter.blur(
+                                                      sigmaX: 15, sigmaY: 15),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      gradient: RadialGradient(
+                                                        colors: [
+                                                          AppTheme.primaryGreen
+                                                              .withValues(
+                                                                  alpha: 0.3),
+                                                          AppTheme.primaryGreen
+                                                              .withValues(
+                                                                  alpha: 0.1),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    child: Icon(
+                                                      Icons.shield_rounded,
+                                                      size: 100,
+                                                      color:
+                                                          AppTheme.primaryGreen,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                      .animate()
+                                      .fadeIn(duration: 800.ms, delay: 200.ms)
+                                      .scale(
+                                        begin: const Offset(0.8, 0.8),
+                                        duration: 1000.ms,
+                                        curve: Curves.easeOutBack,
+                                      ),
+                                  SizedBox(height: size.height * 0.08),
+
+                                  // Glassmorphism content card
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 32.0),
                                     child: Container(
-                                      padding: const EdgeInsets.all(52),
+                                      padding: const EdgeInsets.all(32),
                                       decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
+                                        borderRadius: BorderRadius.circular(28),
                                         gradient: LinearGradient(
                                           begin: Alignment.topLeft,
                                           end: Alignment.bottomRight,
                                           colors: [
-                                            Colors.white
-                                                .withValues(alpha: 0.12),
+                                            Colors.white.withValues(alpha: 0.1),
                                             Colors.white
                                                 .withValues(alpha: 0.05),
                                           ],
@@ -192,179 +274,129 @@ class _OnbordingPage1State extends State<OnbordingPage1>
                                         border: Border.all(
                                           color: Colors.white
                                               .withValues(alpha: 0.15),
-                                          width: 2,
+                                          width: 1.5,
                                         ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: AppTheme.primaryGreen
-                                                .withValues(alpha: 0.3),
-                                            blurRadius: 50,
-                                            spreadRadius: 5,
+                                            color: Colors.black
+                                                .withValues(alpha: 0.2),
+                                            blurRadius: 30,
+                                            offset: const Offset(0, 10),
                                           ),
                                         ],
                                       ),
-                                      child: ClipOval(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(28),
                                         child: BackdropFilter(
                                           filter: ImageFilter.blur(
-                                              sigmaX: 15, sigmaY: 15),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              gradient: RadialGradient(
-                                                colors: [
-                                                  AppTheme.primaryGreen
-                                                      .withValues(alpha: 0.3),
-                                                  AppTheme.primaryGreen
-                                                      .withValues(alpha: 0.1),
-                                                ],
-                                              ),
-                                            ),
-                                            child: Icon(
-                                              Icons.shield_rounded,
-                                              size: 100,
-                                              color: AppTheme.primaryGreen,
-                                            ),
+                                              sigmaX: 12, sigmaY: 12),
+                                          child: Column(
+                                            children: [
+                                              // Feature badge
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 8,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                  gradient: LinearGradient(
+                                                    colors: [
+                                                      AppTheme.primaryGreen
+                                                          .withValues(
+                                                              alpha: 0.3),
+                                                      AppTheme.primaryGreen
+                                                          .withValues(
+                                                              alpha: 0.15),
+                                                    ],
+                                                  ),
+                                                  border: Border.all(
+                                                    color: AppTheme.primaryGreen
+                                                        .withValues(alpha: 0.4),
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons
+                                                          .verified_user_rounded,
+                                                      size: 16,
+                                                      color:
+                                                          AppTheme.primaryGreen,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      "Confidentialité Totale",
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: AppTheme
+                                                            .primaryGreen,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                                  .animate()
+                                                  .fadeIn(
+                                                      duration: 500.ms,
+                                                      delay: 600.ms)
+                                                  .scale(
+                                                      begin: const Offset(
+                                                          0.8, 0.8)),
+                                              const SizedBox(height: 24),
+                                              Text(
+                                                "L'anonymat comme priorité",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontSize: 28,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                  height: 1.2,
+                                                  letterSpacing: -0.5,
+                                                ),
+                                              )
+                                                  .animate()
+                                                  .fadeIn(
+                                                      duration: 600.ms,
+                                                      delay: 700.ms)
+                                                  .slideY(begin: 0.2, end: 0),
+                                              const SizedBox(height: 16),
+                                              Text(
+                                                "Découvrez des profils sans jamais dévoiler votre identité. Sur Whizpee, votre vie privée est cryptée et protégée.",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.75),
+                                                  height: 1.6,
+                                                  letterSpacing: 0.2,
+                                                ),
+                                              )
+                                                  .animate()
+                                                  .fadeIn(
+                                                      duration: 600.ms,
+                                                      delay: 900.ms)
+                                                  .slideY(begin: 0.2, end: 0),
+                                            ],
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            },
-                          )
-                              .animate()
-                              .fadeIn(duration: 800.ms, delay: 200.ms)
-                              .scale(
-                                begin: const Offset(0.8, 0.8),
-                                duration: 1000.ms,
-                                curve: Curves.easeOutBack,
-                              ),
-                          SizedBox(height: size.height * 0.08),
-
-                          // Glassmorphism content card
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 32.0),
-                            child: Container(
-                              padding: const EdgeInsets.all(32),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(28),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Colors.white.withValues(alpha: 0.1),
-                                    Colors.white.withValues(alpha: 0.05),
-                                  ],
-                                ),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.15),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.2),
-                                    blurRadius: 30,
-                                    offset: const Offset(0, 10),
-                                  ),
+                                  const Spacer(flex: 1),
                                 ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(28),
-                                child: BackdropFilter(
-                                  filter:
-                                      ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                                  child: Column(
-                                    children: [
-                                      // Feature badge
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              AppTheme.primaryGreen
-                                                  .withValues(alpha: 0.3),
-                                              AppTheme.primaryGreen
-                                                  .withValues(alpha: 0.15),
-                                            ],
-                                          ),
-                                          border: Border.all(
-                                            color: AppTheme.primaryGreen
-                                                .withValues(alpha: 0.4),
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.verified_user_rounded,
-                                              size: 16,
-                                              color: AppTheme.primaryGreen,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              "Confidentialité Totale",
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                                color: AppTheme.primaryGreen,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                          .animate()
-                                          .fadeIn(
-                                              duration: 500.ms, delay: 600.ms)
-                                          .scale(begin: const Offset(0.8, 0.8)),
-                                      const SizedBox(height: 24),
-                                      Text(
-                                        "L'anonymat comme priorité",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                          height: 1.2,
-                                          letterSpacing: -0.5,
-                                        ),
-                                      )
-                                          .animate()
-                                          .fadeIn(
-                                              duration: 600.ms, delay: 700.ms)
-                                          .slideY(begin: 0.2, end: 0),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        "Découvrez des profils sans jamais dévoiler votre identité. Sur Whizpee, votre vie privée est cryptée et protégée.",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: Colors.white
-                                              .withValues(alpha: 0.75),
-                                          height: 1.6,
-                                          letterSpacing: 0.2,
-                                        ),
-                                      )
-                                          .animate()
-                                          .fadeIn(
-                                              duration: 600.ms, delay: 900.ms)
-                                          .slideY(begin: 0.2, end: 0),
-                                    ],
-                                  ),
-                                ),
                               ),
                             ),
                           ),
-                          const SizedBox(height: 40),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   ),
 

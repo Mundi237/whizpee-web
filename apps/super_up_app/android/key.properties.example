@@ -1,0 +1,18 @@
+# Fichier de configuration pour la signature de l'APK de release
+# Copiez ce fichier vers 'key.properties' et remplissez avec vos vraies valeurs
+# ATTENTION: Ne commitez JAMAIS le fichier key.properties dans Git !
+
+# Chemin vers votre keystore de production
+storeFile=../whizpee-release-key.jks
+
+# Mot de passe du keystore
+storePassword=YOUR_KEYSTORE_PASSWORD
+
+# Alias de la clé dans le keystore
+keyAlias=whizpee-release-key
+
+# Mot de passe de la clé
+keyPassword=YOUR_KEY_PASSWORD
+
+# Instructions pour générer le keystore :
+# keytool -genkey -v -keystore whizpee-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias whizpee-release-key

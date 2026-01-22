@@ -51,6 +51,18 @@ class _VCircleAvatarState extends State<VCircleAvatar>
   @override
   Widget build(BuildContext context) {
     if (widget.vFileSource.fullNetworkUrl != null) {
+      // Vérifier si c'est une image par défaut et afficher une icône
+      if (_isDefaultImage(widget.vFileSource.fullNetworkUrl!)) {
+        return _buildDefaultIconWidget(
+            context, widget.vFileSource.fullNetworkUrl!);
+      }
+
+      // Vérifier si c'est une URL valide
+      if (!widget.vFileSource.fullNetworkUrl!.startsWith('http://') &&
+          !widget.vFileSource.fullNetworkUrl!.startsWith('https://')) {
+        return _buildErrorWidget();
+      }
+
       return CachedNetworkImage(
         imageUrl: widget.vFileSource.fullNetworkUrl!,
         cacheKey: widget.vFileSource.getCachedUrlKey,
@@ -83,6 +95,39 @@ class _VCircleAvatarState extends State<VCircleAvatar>
               ),
             )
           : null,
+    );
+  }
+
+  bool _isDefaultImage(String url) {
+    return url.contains('default_user_image.png') ||
+        url.contains('default_chat_image.png') ||
+        url.contains('default_group_image.png') ||
+        url.contains('default_broadcast_image.png');
+  }
+
+  IconData _getDefaultIcon(String url) {
+    if (url.contains('default_group_image.png')) {
+      return Icons.group;
+    } else if (url.contains('default_broadcast_image.png')) {
+      return Icons.campaign;
+    }
+    return Icons.person;
+  }
+
+  Widget _buildDefaultIconWidget(BuildContext context, String url) {
+    return Container(
+      width: widget.radius * 2.0,
+      height: widget.radius * 2.0,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: widget.border,
+        color: Colors.grey,
+      ),
+      child: Icon(
+        _getDefaultIcon(url),
+        size: widget.radius.toDouble(),
+        color: Theme.of(context).primaryColor,
+      ),
     );
   }
 

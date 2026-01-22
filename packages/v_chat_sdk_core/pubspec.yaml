@@ -7,8 +7,8 @@ repository: https://github.com/hatemragab/v_chat_sdk/tree/master/core_packages/v
 publish_to: none
 
 environment:
-  sdk: '>=2.17.0 <4.0.0'
-  flutter: ">=1.17.0"
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
 
 dependencies:
   flutter:

@@ -14,7 +14,6 @@ import 'package:v_platform/v_platform.dart';
 
 import '../../core/call_state.dart';
 import '../widgets/improved_agora_video_view.dart';
-import '../widgets/improved_call_actions_row.dart';
 import 'call_controller.dart';
 
 class ImprovedVCallPage extends StatefulWidget {
@@ -84,20 +83,31 @@ class _ImprovedVCallPageState extends State<ImprovedVCallPage>
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
+    final isDark = VThemeListener.I.isDarkMode;
 
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: const Color(0xFF0A0A0A),
         body: Container(
-          decoration: const BoxDecoration(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF1A1A1A),
-                Color(0xFF0A0A0A),
-              ],
+              colors: isDark
+                  ? [
+                      const Color(0xFF7B5FBD),
+                      const Color(0xFF6B4DB0),
+                      const Color(0xFF5A3DA3),
+                      const Color(0xFF4A2D96),
+                    ]
+                  : [
+                      const Color(0xFF8B6FCD),
+                      const Color(0xFF7B5FBD),
+                      const Color(0xFF6B4DB0),
+                      const Color(0xFF5A3DA3),
+                    ],
             ),
           ),
           child: SafeArea(
@@ -106,13 +116,24 @@ class _ImprovedVCallPageState extends State<ImprovedVCallPage>
               child: ValueListenableBuilder<CallState>(
                 valueListenable: _callController,
                 builder: (context, callState, child) {
-                  return Column(
+                  return Stack(
                     children: [
-                      _buildCallHeader(context, callState, isTablet),
-                      Expanded(
-                        child: _buildVideoLayout(context, callState, isTablet),
+                      // Video overlay for video calls (behind everything)
+                      if (widget.callData.isVideoEnable &&
+                          callState.users.isNotEmpty)
+                        _buildVideoOverlay(context, callState, isTablet),
+                      // Main content (on top)
+                      Column(
+                        children: [
+                          _buildBackButton(context, isTablet),
+                          const Spacer(),
+                          if (!widget.callData.isVideoEnable ||
+                              callState.users.isEmpty)
+                            _buildCenterContent(context, callState, isTablet),
+                          const Spacer(),
+                          _buildCallActions(context, callState, isTablet),
+                        ],
                       ),
-                      _buildCallActions(context, callState, isTablet),
                     ],
                   );
                 },
@@ -124,30 +145,52 @@ class _ImprovedVCallPageState extends State<ImprovedVCallPage>
     );
   }
 
-  Widget _buildCallHeader(
-      BuildContext context, CallState callState, bool isTablet) {
-    return Container(
+  Widget _buildBackButton(BuildContext context, bool isTablet) {
+    return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: isTablet ? 32.0 : 20.0,
-        vertical: isTablet ? 24.0 : 16.0,
+        horizontal: isTablet ? 24.0 : 16.0,
+        vertical: isTablet ? 20.0 : 12.0,
       ),
-      child: Column(
+      child: Row(
         children: [
-          _buildUserInfo(context, isTablet),
-          const SizedBox(height: 12),
-          if (callState.status == VCallStatus.inCall)
-            _buildCallTimer(context)
-          else
-            _buildCallStatus(context, callState),
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: EdgeInsets.all(isTablet ? 12 : 10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: Colors.white,
+                size: isTablet ? 24 : 20,
+              ),
+            ),
+          ),
+          SizedBox(width: isTablet ? 16 : 12),
+          Text(
+            'Retour',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: isTablet ? 18 : 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildUserInfo(BuildContext context, bool isTablet) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildCenterContent(
+      BuildContext context, CallState callState, bool isTablet) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
+        // Large avatar with pulse animation
         AnimatedBuilder(
           animation: _pulseAnimation,
           builder: (context, child) {
@@ -158,211 +201,146 @@ class _ImprovedVCallPageState extends State<ImprovedVCallPage>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.withValues(alpha:0.3),
-                      blurRadius: 20,
-                      spreadRadius: 5,
+                      color: Colors.white.withValues(alpha: 0.2),
+                      blurRadius: 30,
+                      spreadRadius: 10,
                     ),
                   ],
                 ),
-                child: VCircleAvatar(
-                  vFileSource: VPlatformFile.fromUrl(
-                    networkUrl: widget.callData.peerUser.userImage,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      width: 3,
+                    ),
                   ),
-                  radius: isTablet ? 32 : 28,
+                  child: VCircleAvatar(
+                    vFileSource: VPlatformFile.fromUrl(
+                      networkUrl: widget.callData.peerUser.userImage,
+                    ),
+                    radius: isTablet ? 80 : 70,
+                  ),
                 ),
               ),
             );
           },
         ),
-        SizedBox(width: isTablet ? 24 : 20),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.callData.peerUser.fullName,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: isTablet ? 26 : 22,
-                    ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                widget.callData.isVideoEnable
-                    ? S.of(context).videoCallMessages
-                    : S.of(context).voiceCallMessages,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
-                      fontSize: isTablet ? 16 : 14,
-                    ),
-              ),
-            ],
+        SizedBox(height: isTablet ? 32 : 24),
+        // Name
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: Text(
+            widget.callData.peerUser.fullName,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: isTablet ? 32 : 26,
+              letterSpacing: 0.5,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
+        SizedBox(height: isTablet ? 16 : 12),
+        // Status
+        if (callState.status == VCallStatus.inCall)
+          _buildCallTimer(context, isTablet)
+        else
+          _buildCallStatus(context, callState, isTablet),
       ],
     );
   }
 
-  Widget _buildCallTimer(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.green.withValues(alpha:0.15),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.green.withValues(alpha:0.4), width: 1.5),
-      ),
-      child: StreamBuilder<int>(
-        initialData: 0,
-        stream: _callController.stopWatchTimer.rawTime,
-        builder: (context, snapshot) {
-          final rawTime = snapshot.data ?? 0;
-          final displayTime = StopWatchTimer.getDisplayTime(
-            rawTime,
-            hours: false,
-            milliSecond: false,
-            minute: true,
-            second: true,
-          );
-          return Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.green,
-                  shape: BoxShape.circle,
-                ),
+  Widget _buildCallTimer(BuildContext context, bool isTablet) {
+    return StreamBuilder<int>(
+      initialData: 0,
+      stream: _callController.stopWatchTimer.rawTime,
+      builder: (context, snapshot) {
+        final rawTime = snapshot.data ?? 0;
+        final displayTime = StopWatchTimer.getDisplayTime(
+          rawTime,
+          hours: false,
+          milliSecond: false,
+          minute: true,
+          second: true,
+        );
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: isTablet ? 10 : 8,
+              height: isTablet ? 10 : 8,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(width: 8),
-              Text(
-                displayTime,
-                style: const TextStyle(
-                  color: Colors.green,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  letterSpacing: 0.5,
-                ),
+            ),
+            SizedBox(width: isTablet ? 10 : 8),
+            Text(
+              displayTime,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontWeight: FontWeight.w500,
+                fontSize: isTablet ? 18 : 16,
+                letterSpacing: 1,
               ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildCallStatus(BuildContext context, CallState callState) {
+  Widget _buildCallStatus(
+      BuildContext context, CallState callState, bool isTablet) {
     String statusText;
-    Color statusColor;
-    IconData statusIcon;
 
     switch (callState.status) {
       case VCallStatus.ring:
-        statusText = S.of(context).makeCall;
-        statusColor = Colors.blue;
-        statusIcon = Icons.call;
+        statusText = 'Demande...';
         break;
       case VCallStatus.inCall:
         statusText = S.of(context).inCall;
-        statusColor = Colors.green;
-        statusIcon = Icons.call;
         break;
       case VCallStatus.rejected:
         statusText = S.of(context).callNotAllowed;
-        statusColor = Colors.red;
-        statusIcon = Icons.call_end;
         break;
       default:
-        statusText = S.of(context).makeCall;
-        statusColor = Colors.blue;
-        statusIcon = Icons.call;
+        statusText = 'Demande...';
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: statusColor.withValues(alpha:0.15),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: statusColor.withValues(alpha:0.4), width: 1.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            statusIcon,
-            color: statusColor,
-            size: 18,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            statusText,
-            style: TextStyle(
-              color: statusColor,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
-          ),
-        ],
+    return Text(
+      statusText,
+      style: TextStyle(
+        color: Colors.white.withValues(alpha: 0.85),
+        fontWeight: FontWeight.w400,
+        fontSize: isTablet ? 18 : 16,
+        letterSpacing: 0.3,
       ),
     );
   }
 
-  Widget _buildVideoLayout(
+  Widget _buildVideoOverlay(
       BuildContext context, CallState callState, bool isTablet) {
     final users = callState.users;
 
-    return Padding(
-      padding: EdgeInsets.all(isTablet ? 24.0 : 16.0),
+    if (users.isEmpty || !widget.callData.isVideoEnable) {
+      return const SizedBox.shrink();
+    }
+
+    return Positioned.fill(
       child: OrientationBuilder(
         builder: (context, orientation) {
           final isPortrait = orientation == Orientation.portrait;
-
-          if (users.isEmpty) {
-            return _buildEmptyVideoState(context, isTablet);
-          }
-
-          // Update aspect ratio based on orientation
           WidgetsBinding.instance.addPostFrameCallback(
             (_) =>
                 setState(() => _videoAspectRatio = isPortrait ? 2 / 3 : 3 / 2),
           );
-
           return _buildVideoLayoutByUserCount(users, callState, isTablet);
         },
-      ),
-    );
-  }
-
-  Widget _buildEmptyVideoState(BuildContext context, bool isTablet) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(isTablet ? 32 : 24),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha:0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              widget.callData.isVideoEnable ? Icons.videocam : Icons.call,
-              size: isTablet ? 80 : 64,
-              color: Colors.white38,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            S.of(context).makeCall,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white54,
-                  fontSize: isTablet ? 22 : 18,
-                  fontWeight: FontWeight.w500,
-                ),
-          ),
-        ],
       ),
     );
   }
@@ -390,7 +368,7 @@ class _ImprovedVCallPageState extends State<ImprovedVCallPage>
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha:0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 12,
                 spreadRadius: 2,
               ),
@@ -431,7 +409,7 @@ class _ImprovedVCallPageState extends State<ImprovedVCallPage>
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha:0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     blurRadius: 12,
                     spreadRadius: 2,
                   ),
@@ -458,12 +436,12 @@ class _ImprovedVCallPageState extends State<ImprovedVCallPage>
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha:0.4),
+                    color: Colors.white.withValues(alpha: 0.4),
                     width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha:0.6),
+                      color: Colors.black.withValues(alpha: 0.6),
                       blurRadius: 12,
                       spreadRadius: 1,
                     ),
@@ -508,7 +486,7 @@ class _ImprovedVCallPageState extends State<ImprovedVCallPage>
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha:0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 8,
                 spreadRadius: 1,
               ),
@@ -530,91 +508,113 @@ class _ImprovedVCallPageState extends State<ImprovedVCallPage>
       BuildContext context, CallState callState, bool isTablet) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: isTablet ? 32.0 : 20.0,
-        vertical: isTablet ? 28.0 : 24.0,
+        horizontal: isTablet ? 40.0 : 24.0,
+        vertical: isTablet ? 20.0 : 16.0,
       ),
-      child: Wrap(
-        alignment: WrapAlignment.spaceEvenly,
-        spacing: isTablet ? 20 : 16,
-        children: [
-          if (widget.callData.isVideoEnable) ...[
-            _buildVideoToggleButton(callState, isTablet),
-            _buildCameraSwitchButton(callState, isTablet),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [
+            Colors.black.withValues(alpha: 0.6),
+            Colors.black.withValues(alpha: 0.3),
+            Colors.transparent,
           ],
-          _buildMicrophoneToggleButton(callState, isTablet),
-          _buildSpeakerToggleButton(callState, isTablet),
-          _buildEndCallButton(isTablet),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildActionButton(
+            icon: callState.isSpeakerEnabled
+                ? CupertinoIcons.speaker_3
+                : CupertinoIcons.speaker_1,
+            label: 'haut-parleur',
+            isTablet: isTablet,
+            onTap: _callController.onToggleSpeaker,
+          ),
+          if (widget.callData.isVideoEnable)
+            _buildActionButton(
+              icon: callState.isVideoEnabled
+                  ? Icons.videocam
+                  : Icons.videocam_off,
+              label: 'vidéo',
+              isTablet: isTablet,
+              onTap: _callController.onToggleCamera,
+            ),
+          _buildActionButton(
+            icon: callState.isMicEnabled ? Icons.mic : Icons.mic_off,
+            label: 'muet',
+            isTablet: isTablet,
+            onTap: _callController.onToggleMicrophone,
+          ),
+          _buildActionButton(
+            icon: Icons.call_end,
+            label: 'terminer',
+            isTablet: isTablet,
+            isEndCall: true,
+            onTap: () => Navigator.pop(context),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildVideoToggleButton(CallState callState, bool isTablet) {
-    return ImprovedCallActionButton(
-      icon: callState.isVideoEnabled ? Icons.videocam : Icons.videocam_off,
-      isEnabled: widget.callData.isVideoEnable,
-      onTap:
-          widget.callData.isVideoEnable ? _callController.onToggleCamera : null,
-      backgroundColor: callState.isVideoEnabled
-          ? Colors.white.withValues(alpha:0.95)
-          : Colors.red.withValues(alpha:0.9),
-      iconColor: callState.isVideoEnabled ? Colors.black87 : Colors.white,
-      radius: isTablet ? 32 : 28,
-      iconSize: isTablet ? 28 : 24,
-    );
-  }
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required bool isTablet,
+    required VoidCallback onTap,
+    bool isEndCall = false,
+  }) {
+    final buttonSize = isTablet ? 70.0 : 60.0;
+    final iconSize = isTablet ? 32.0 : 28.0;
 
-  Widget _buildCameraSwitchButton(CallState callState, bool isTablet) {
-    return ImprovedCallActionButton(
-      icon: Icons.cameraswitch,
-      onTap:
-          widget.callData.isVideoEnable ? _callController.onSwitchCamera : null,
-      isEnabled: widget.callData.isVideoEnable && callState.isVideoEnabled,
-      backgroundColor: Colors.white.withValues(alpha:0.95),
-      iconColor: Colors.black87,
-      radius: isTablet ? 32 : 28,
-      iconSize: isTablet ? 28 : 24,
-    );
-  }
-
-  Widget _buildMicrophoneToggleButton(CallState callState, bool isTablet) {
-    return ImprovedCallActionButton(
-      icon: callState.isMicEnabled ? Icons.mic : Icons.mic_off,
-      isEnabled: true,
-      onTap: _callController.onToggleMicrophone,
-      backgroundColor: callState.isMicEnabled
-          ? Colors.white.withValues(alpha:0.95)
-          : Colors.red.withValues(alpha:0.9),
-      iconColor: callState.isMicEnabled ? Colors.black87 : Colors.white,
-      radius: isTablet ? 32 : 28,
-      iconSize: isTablet ? 28 : 24,
-    );
-  }
-
-  Widget _buildSpeakerToggleButton(CallState callState, bool isTablet) {
-    return ImprovedCallActionButton(
-      icon: callState.isSpeakerEnabled
-          ? CupertinoIcons.speaker_3
-          : CupertinoIcons.speaker_1,
-      onTap: _callController.onToggleSpeaker,
-      backgroundColor: callState.isSpeakerEnabled
-          ? Colors.blue.withValues(alpha:0.9)
-          : Colors.white.withValues(alpha:0.95),
-      iconColor: callState.isSpeakerEnabled ? Colors.white : Colors.black87,
-      radius: isTablet ? 32 : 28,
-      iconSize: isTablet ? 28 : 24,
-    );
-  }
-
-  Widget _buildEndCallButton(bool isTablet) {
-    return ImprovedCallActionButton(
-      icon: Icons.call_end,
-      onTap: () => Navigator.pop(context),
-      radius: isTablet ? 36 : 32,
-      isEnabled: true,
-      backgroundColor: Colors.red,
-      iconSize: isTablet ? 32 : 28,
-      iconColor: Colors.white,
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: buttonSize,
+            height: buttonSize,
+            decoration: BoxDecoration(
+              color: isEndCall
+                  ? Colors.red.withValues(alpha: 0.95)
+                  : Colors.white.withValues(alpha: 0.25),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isEndCall
+                    ? Colors.red.withValues(alpha: 0.3)
+                    : Colors.white.withValues(alpha: 0.4),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: (isEndCall ? Colors.red : Colors.black)
+                      .withValues(alpha: 0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: iconSize,
+            ),
+          ),
+          SizedBox(height: isTablet ? 12 : 10),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: isTablet ? 14 : 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

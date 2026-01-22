@@ -15,6 +15,7 @@ import 'package:v_platform/v_platform.dart';
 class VMessageUploaderQueue {
   final _uploadQueue = <VMessageUploadModel>[];
   final _localStorage = VChatController.I.nativeApi.local.message;
+  final _localRoom = VChatController.I.nativeApi.local.room;
   final _remoteStorage = VChatController.I.nativeApi.remote;
   final _log = Logger("VMessageUploaderQueue");
 
@@ -64,8 +65,22 @@ class VMessageUploaderQueue {
   /// [uploadModel] is the model of the message to be sent
   Future<void> _sendToWebApi(VMessageUploadModel uploadModel) async {
     await _setSending(uploadModel);
+
     try {
-      final msg = await _remoteStorage.message.createMessage(uploadModel);
+      // Determine the room type to route to the correct API
+      final room =
+          await _localRoom.getOneWithLastMessageByRoomId(uploadModel.roomId);
+      final VBaseMessage msg;
+
+      if (room?.roomType == VRoomType.a) {
+        // Route to announcement room API for announcement conversations
+        msg = await _remoteStorage.announcementRoom
+            .createAnnouncementMessage(uploadModel);
+      } else {
+        // Route to standard VChat API for normal conversations
+        msg = await _remoteStorage.message.createMessage(uploadModel);
+      }
+
       await _onSuccessToSend(msg);
     } catch (e) {
       if (e is VChatHttpForbidden) {
@@ -102,9 +117,23 @@ class VMessageUploaderQueue {
     final access = VAppPref.getHashedString(
       key: SStorageKeys.vAccessToken.name,
     );
+
+    // Determine the room type to route to the correct API endpoint
+    final room =
+        await _localRoom.getOneWithLastMessageByRoomId(uploadModel.roomId);
+    final String apiUrl;
+
+    if (room?.roomType == VRoomType.a) {
+      // Route to announcement room API for announcement conversations
+      apiUrl =
+          "${VAppConstants.baseUri}/announcement-rooms/${base.roomId}/messages";
+    } else {
+      // Route to standard VChat API for normal conversations
+      apiUrl = "${VAppConstants.baseUri}/channel/${base.roomId}/message";
+    }
+
     final task = UploadTask(
-      //base/api/v2                /channel/message
-      url: "${VAppConstants.baseUri}/channel/${base.roomId}/message",
+      url: apiUrl,
       filename: message.localFilePathWithExt,
       displayName: _getUploadGroupName(base),
       group: _getUploadGroupName(base),

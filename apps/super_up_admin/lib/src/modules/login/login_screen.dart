@@ -136,284 +136,308 @@ class _LoginScreenState extends State<LoginScreen> {
               // Right panel - login form with card design
               Expanded(
                 flex: isNarrowScreen ? 12 : 7,
-                child: Center(
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40.0),
-                      child: FadeInRight(
-                        duration: const Duration(milliseconds: 800),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: 450,
-                          ),
-                          child: Card(
-                            elevation: 15,
-                            shadowColor: Colors.black12,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            color: cardColor,
-                            child: Padding(
-                              padding: const EdgeInsets.all(40.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Compact header for narrow screens
-                                  if (isNarrowScreen)
-                                    Column(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const ClampingScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(40.0),
+                            child: FadeInRight(
+                              duration: const Duration(milliseconds: 800),
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 450,
+                                ),
+                                child: Card(
+                                  elevation: 15,
+                                  shadowColor: Colors.black12,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  color: cardColor,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(40.0),
+                                    child: Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.center,
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(16),
-                                          decoration: BoxDecoration(
-                                            color: primaryColor.withValues(
-                                                alpha: 0.1),
-                                            borderRadius:
-                                                BorderRadius.circular(16),
+                                        // Compact header for narrow screens
+                                        if (isNarrowScreen)
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(16),
+                                                decoration: BoxDecoration(
+                                                  color: primaryColor
+                                                      .withValues(alpha: 0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
+                                                ),
+                                                child: Icon(
+                                                  Icons.chat_bubble_outlined,
+                                                  size: 50,
+                                                  color: primaryColor,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 16),
+                                              Text(
+                                                SConstants.appName,
+                                                style: GoogleFonts.poppins(
+                                                  textStyle: TextStyle(
+                                                    fontSize: 28,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: textColor,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                S.of(context).adminDashboard,
+                                                style: GoogleFonts.poppins(
+                                                  textStyle: TextStyle(
+                                                    fontSize: 18,
+                                                    color: secondaryColor,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 40),
+                                              const Divider(),
+                                              const SizedBox(height: 40),
+                                            ],
                                           ),
-                                          child: Icon(
-                                            Icons.chat_bubble_outlined,
-                                            size: 50,
-                                            color: primaryColor,
-                                          ),
+
+                                        // Welcome message with modern typography
+                                        Column(
+                                          crossAxisAlignment: isNarrowScreen
+                                              ? CrossAxisAlignment.center
+                                              : CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              S.of(context).welcomeBack,
+                                              style: GoogleFonts.poppins(
+                                                textStyle: TextStyle(
+                                                  fontSize: 32,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: textColor,
+                                                  letterSpacing: 0.5,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 10),
+                                            Text(
+                                              S
+                                                  .of(context)
+                                                  .enterCredentialsToAccessDashboard,
+                                              style: GoogleFonts.poppins(
+                                                textStyle: TextStyle(
+                                                  fontSize: 16,
+                                                  color: textColor.withValues(
+                                                      alpha: 0.7),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(height: 16),
+                                        const SizedBox(height: 40),
+
+                                        // Password field with floating label
                                         Text(
-                                          SConstants.appName,
+                                          S.of(context).password,
                                           style: GoogleFonts.poppins(
                                             textStyle: TextStyle(
-                                              fontSize: 28,
-                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
                                               color: textColor,
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          S.of(context).adminDashboard,
-                                          style: GoogleFonts.poppins(
-                                            textStyle: TextStyle(
-                                              fontSize: 18,
-                                              color: secondaryColor,
-                                              fontWeight: FontWeight.w500,
+                                        const SizedBox(height: 10),
+                                        TextFormField(
+                                          controller: _passwordFiled,
+                                          obscureText: _obscurePassword,
+                                          style: TextStyle(fontSize: 16),
+                                          decoration: InputDecoration(
+                                            hintText: S
+                                                .of(context)
+                                                .enterAdminPassword,
+                                            prefixIcon: Container(
+                                              padding: const EdgeInsets.all(12),
+                                              child: Icon(
+                                                Icons.lock_outline,
+                                                color: primaryColor,
+                                                size: 22,
+                                              ),
+                                            ),
+                                            suffixIcon: IconButton(
+                                              icon: Icon(
+                                                _obscurePassword
+                                                    ? Icons.visibility_off
+                                                    : Icons.visibility,
+                                                color: Colors.grey.shade600,
+                                                size: 22,
+                                              ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  _obscurePassword =
+                                                      !_obscurePassword;
+                                                });
+                                              },
+                                            ),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              borderSide: BorderSide(
+                                                  color: Colors.grey.shade300),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              borderSide: BorderSide(
+                                                  color: Colors.grey.shade300),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              borderSide: BorderSide(
+                                                  color: primaryColor,
+                                                  width: 2),
+                                            ),
+                                            filled: true,
+                                            fillColor: Colors.grey.shade50,
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    vertical: 20,
+                                                    horizontal: 20),
+                                          ),
+                                          onFieldSubmitted: (value) => _login(),
+                                        ),
+                                        const SizedBox(height: 16),
+
+                                        // Remember me checkbox with modern styling
+                                        Transform.translate(
+                                          offset: const Offset(-12, 0),
+                                          child: CheckboxListTile(
+                                            title: Text(
+                                              S.of(context).saveLogin,
+                                              style: GoogleFonts.poppins(
+                                                textStyle: TextStyle(
+                                                  fontSize: 15,
+                                                  color: textColor.withValues(
+                                                      alpha: 0.8),
+                                                ),
+                                              ),
+                                            ),
+                                            value: _saveLogin,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _saveLogin = value ?? false;
+                                              });
+                                            },
+                                            controlAffinity:
+                                                ListTileControlAffinity.leading,
+                                            activeColor: primaryColor,
+                                            checkColor: Colors.white,
+                                            contentPadding: EdgeInsets.zero,
+                                            dense: true,
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(height: 40),
-                                        const Divider(),
-                                        const SizedBox(height: 40),
+                                        const SizedBox(height: 36),
+
+                                        // Login button with gradient
+                                        SizedBox(
+                                          width: double.infinity,
+                                          height: 54,
+                                          child: ElevatedButton(
+                                            onPressed: _login,
+                                            style: ElevatedButton.styleFrom(
+                                              foregroundColor: Colors.white,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 16),
+                                              textStyle: GoogleFonts.poppins(
+                                                textStyle: const TextStyle(
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.w600,
+                                                  letterSpacing: 0.5,
+                                                ),
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                              ),
+                                              elevation: 0,
+                                            ).copyWith(
+                                              backgroundColor:
+                                                  WidgetStateProperty
+                                                      .resolveWith<Color>(
+                                                (Set<WidgetState> states) {
+                                                  if (states.contains(
+                                                      WidgetState.pressed)) {
+                                                    return primaryColor
+                                                        .withValues(alpha: 0.8);
+                                                  }
+                                                  return primaryColor;
+                                                },
+                                              ),
+                                            ),
+                                            child: Text(S
+                                                .of(context)
+                                                .login
+                                                .toUpperCase()),
+                                          ),
+                                        ),
+
+                                        const SizedBox(height: 24),
+
+                                        // Help text
+                                        Center(
+                                          child: TextButton.icon(
+                                            icon: Icon(Icons.help_outline,
+                                                size: 18,
+                                                color: textColor.withValues(
+                                                    alpha: 0.6)),
+                                            label: Text(
+                                              S.of(context).needHelp,
+                                              style: GoogleFonts.poppins(
+                                                textStyle: TextStyle(
+                                                  fontSize: 14,
+                                                  color: textColor.withValues(
+                                                      alpha: 0.6),
+                                                ),
+                                              ),
+                                            ),
+                                            onPressed: () {
+                                              // Show help dialog or navigate to help page
+                                            },
+                                          ),
+                                        ),
                                       ],
                                     ),
-
-                                  // Welcome message with modern typography
-                                  Column(
-                                    crossAxisAlignment: isNarrowScreen
-                                        ? CrossAxisAlignment.center
-                                        : CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        S.of(context).welcomeBack,
-                                        style: GoogleFonts.poppins(
-                                          textStyle: TextStyle(
-                                            fontSize: 32,
-                                            fontWeight: FontWeight.bold,
-                                            color: textColor,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        S
-                                            .of(context)
-                                            .enterCredentialsToAccessDashboard,
-                                        style: GoogleFonts.poppins(
-                                          textStyle: TextStyle(
-                                            fontSize: 16,
-                                            color: textColor.withValues(
-                                                alpha: 0.7),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
                                   ),
-                                  const SizedBox(height: 40),
-
-                                  // Password field with floating label
-                                  Text(
-                                    S.of(context).password,
-                                    style: GoogleFonts.poppins(
-                                      textStyle: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                        color: textColor,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  TextFormField(
-                                    controller: _passwordFiled,
-                                    obscureText: _obscurePassword,
-                                    style: TextStyle(fontSize: 16),
-                                    decoration: InputDecoration(
-                                      hintText:
-                                          S.of(context).enterAdminPassword,
-                                      prefixIcon: Container(
-                                        padding: const EdgeInsets.all(12),
-                                        child: Icon(
-                                          Icons.lock_outline,
-                                          color: primaryColor,
-                                          size: 22,
-                                        ),
-                                      ),
-                                      suffixIcon: IconButton(
-                                        icon: Icon(
-                                          _obscurePassword
-                                              ? Icons.visibility_off
-                                              : Icons.visibility,
-                                          color: Colors.grey.shade600,
-                                          size: 22,
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            _obscurePassword =
-                                                !_obscurePassword;
-                                          });
-                                        },
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(
-                                            color: Colors.grey.shade300),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(
-                                            color: Colors.grey.shade300),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(
-                                            color: primaryColor, width: 2),
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.grey.shade50,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              vertical: 20, horizontal: 20),
-                                    ),
-                                    onFieldSubmitted: (value) => _login(),
-                                  ),
-                                  const SizedBox(height: 16),
-
-                                  // Remember me checkbox with modern styling
-                                  Transform.translate(
-                                    offset: const Offset(-12, 0),
-                                    child: CheckboxListTile(
-                                      title: Text(
-                                        S.of(context).saveLogin,
-                                        style: GoogleFonts.poppins(
-                                          textStyle: TextStyle(
-                                            fontSize: 15,
-                                            color: textColor.withValues(
-                                                alpha: 0.8),
-                                          ),
-                                        ),
-                                      ),
-                                      value: _saveLogin,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _saveLogin = value ?? false;
-                                        });
-                                      },
-                                      controlAffinity:
-                                          ListTileControlAffinity.leading,
-                                      activeColor: primaryColor,
-                                      checkColor: Colors.white,
-                                      contentPadding: EdgeInsets.zero,
-                                      dense: true,
-                                      visualDensity: VisualDensity.compact,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 36),
-
-                                  // Login button with gradient
-                                  SizedBox(
-                                    width: double.infinity,
-                                    height: 54,
-                                    child: ElevatedButton(
-                                      onPressed: _login,
-                                      style: ElevatedButton.styleFrom(
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 16),
-                                        textStyle: GoogleFonts.poppins(
-                                          textStyle: const TextStyle(
-                                            fontSize: 17,
-                                            fontWeight: FontWeight.w600,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                        ),
-                                        elevation: 0,
-                                      ).copyWith(
-                                        backgroundColor: WidgetStateProperty
-                                            .resolveWith<Color>(
-                                          (Set<WidgetState> states) {
-                                            if (states.contains(
-                                                WidgetState.pressed)) {
-                                              return primaryColor.withValues(
-                                                  alpha: 0.8);
-                                            }
-                                            return primaryColor;
-                                          },
-                                        ),
-                                      ),
-                                      child: Text(
-                                          S.of(context).login.toUpperCase()),
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 24),
-
-                                  // Help text
-                                  Center(
-                                    child: TextButton.icon(
-                                      icon: Icon(Icons.help_outline,
-                                          size: 18,
-                                          color:
-                                              textColor.withValues(alpha: 0.6)),
-                                      label: Text(
-                                        S.of(context).needHelp,
-                                        style: GoogleFonts.poppins(
-                                          textStyle: TextStyle(
-                                            fontSize: 14,
-                                            color: textColor.withValues(
-                                                alpha: 0.6),
-                                          ),
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        // Show help dialog or navigate to help page
-                                      },
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
             ],

@@ -96,6 +96,24 @@ class AnnonceController extends ChangeNotifier {
     }
   }
 
+  Future<Annonces> getAnnonceDetails(String annonceId) async {
+    try {
+      return await annonceService.getAnnonceDetails(annonceId);
+    } catch (e) {
+      Utils.loggerError(e);
+      rethrow;
+    }
+  }
+
+  Future<Annonces> getAnnoncePreview(String annonceId) async {
+    try {
+      return await annonceService.getAnnoncePreview(annonceId);
+    } catch (e) {
+      Utils.loggerError(e);
+      rethrow;
+    }
+  }
+
   Future<void> viewAnnonce(String id) async {
     try {
       await annonceService.viewAnnonce(id);
@@ -186,7 +204,7 @@ class AnnonceController extends ChangeNotifier {
         'mentionsCount': 0, // mentionsCount (par défaut)
         'isA': false, // isArchived (par défaut)
         'isOneSeen': false, // isOneSeen (par défaut)
-        'rT': 's', // roomType: 's' pour single (pas "single")
+        'rT': 'a', // roomType: 'a' pour announcement (CTA conversations)
         'createdAt': result['createdAt'] ?? DateTime.now().toIso8601String(),
         'uC': 0, // unReadCount (par défaut)
         'isM': false, // isMuted (par défaut)

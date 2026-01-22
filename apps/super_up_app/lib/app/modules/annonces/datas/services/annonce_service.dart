@@ -93,6 +93,28 @@ class AnnonceService {
     }
   }
 
+  Future<Annonces> getAnnonceDetails(String annonceId) async {
+    try {
+      final response = await dio.get('/annonces/$annonceId');
+      final data = response.data['data'];
+      return Annonces.fromMap(data);
+    } catch (e) {
+      Utils.loggerError(e);
+      rethrow;
+    }
+  }
+
+  Future<Annonces> getAnnoncePreview(String annonceId) async {
+    try {
+      final response = await dio.get('/annonces/$annonceId/preview');
+      final data = response.data['data'];
+      return Annonces.fromMap(data);
+    } catch (e) {
+      Utils.loggerError(e);
+      rethrow;
+    }
+  }
+
   Future viewAnnonce(String annonceID) async {
     try {
       await dio.get('/annonces/$annonceID/views');

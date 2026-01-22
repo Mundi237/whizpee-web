@@ -11,6 +11,8 @@ import '../../../assets/data/local_messages.dart';
 
 class MessageProvider {
   final _remoteMessage = VChatController.I.nativeApi.remote.message;
+  final _remoteAnnouncementRoom =
+      VChatController.I.nativeApi.remote.announcementRoom;
   final _localMessage = VChatController.I.nativeApi.local.message;
   final _localRoom = VChatController.I.nativeApi.local.room;
   final _remoteRoom = VChatController.I.nativeApi.remote.room;
@@ -45,10 +47,35 @@ class MessageProvider {
     required String roomId,
     required VRoomMessagesDto dto,
   }) async {
-    final apiMessages = await _remoteMessage.getRoomMessages(
-      roomId: roomId,
-      dto: dto,
-    );
+    print("🔍 [MessageProvider] getApiMessages called for roomId: $roomId");
+    print("🔍 [MessageProvider] DTO: ${dto.toMap()}");
+
+    // Determine the room type to route to the correct API
+    final room = await _localRoom.getOneWithLastMessageByRoomId(roomId);
+    print("🔍 [MessageProvider] Room found: ${room != null}");
+    print("🔍 [MessageProvider] Room type: ${room?.roomType}");
+    print(
+        "🔍 [MessageProvider] Is announcement: ${room?.roomType == VRoomType.a}");
+
+    final List<VBaseMessage> apiMessages;
+
+    if (room?.roomType == VRoomType.a) {
+      // Route to announcement room API for announcement conversations
+      print("🔍 [MessageProvider] ✅ Routing to ANNOUNCEMENT ROOM API");
+      apiMessages = await _remoteAnnouncementRoom.getAnnouncementRoomMessages(
+        roomId: roomId,
+        dto: dto,
+      );
+    } else {
+      // Route to standard VChat API for normal conversations
+      print("🔍 [MessageProvider] ✅ Routing to STANDARD VCHAT API");
+      apiMessages = await _remoteMessage.getRoomMessages(
+        roomId: roomId,
+        dto: dto,
+      );
+    }
+
+    print("🔍 [MessageProvider] Retrieved ${apiMessages.length} messages");
     unawaited(_localMessage.cacheRoomMessages(apiMessages));
     return apiMessages;
   }

@@ -152,7 +152,7 @@ abstract class VBaseMessage {
   /// Reaction counters and preview for UI display
   int reactionNumber;
   List<ReactionSample> reactionSample;
-  
+
   /// Current user's selected emoji (null if no reaction)
   String? currentUserEmoji;
 
@@ -174,7 +174,8 @@ abstract class VBaseMessage {
         isStared = (map['isStared'] as bool?) ?? false,
         content = map['c'] as String,
         messageType =
-            EnumToString.fromString(VMessageType.values, map['mT'] as String) ?? VMessageType.bug,
+            EnumToString.fromString(VMessageType.values, map['mT'] as String) ??
+                VMessageType.bug,
         replyTo = map['rTo'] == null
             ? null
             : MessageFactory.createBaseMessage(
@@ -191,8 +192,9 @@ abstract class VBaseMessage {
         updatedAt = map['updatedAt'] as String,
         reactionNumber = (map['reactionNumber'] as int?) ?? 0,
         reactionSample = (map['reactionSample'] as List<dynamic>?)
-            ?.map((e) => ReactionSample.fromJson(e as Map<String, dynamic>))
-            .toList() ?? const [],
+                ?.map((e) => ReactionSample.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            const [],
         currentUserEmoji = map['currentUserEmoji'] as String?;
 
   /// from local
@@ -214,12 +216,14 @@ abstract class VBaseMessage {
         replyTo = map[MessageTable.columnReplyTo] == null
             ? null
             : MessageFactory.createBaseMessage(
-                jsonDecode(map[MessageTable.columnReplyTo] as String) as Map<String, dynamic>,
+                jsonDecode(map[MessageTable.columnReplyTo] as String)
+                    as Map<String, dynamic>,
               ),
         deliveredAt = map[MessageTable.columnDeliveredAt] as String?,
         forwardId = map[MessageTable.columnForwardId] as String?,
         allDeletedAt = map[MessageTable.columnAllDeletedAt] as String?,
-        parentBroadcastId = map[MessageTable.columnParentBroadcastId] as String?,
+        parentBroadcastId =
+            map[MessageTable.columnParentBroadcastId] as String?,
         localId = map[MessageTable.columnLocalId] as String,
         createdAt = map[MessageTable.columnCreatedAt] as String,
         updatedAt = map[MessageTable.columnUpdatedAt] as String,
@@ -229,8 +233,8 @@ abstract class VBaseMessage {
                 jsonDecode(map[MessageTable.columnLinkAttachment] as String)
                     as Map<String, dynamic>,
               ),
-        emitStatus =
-            VMessageEmitStatus.values.byName(map[MessageTable.columnMessageEmitStatus] as String),
+        emitStatus = VMessageEmitStatus.values
+            .byName(map[MessageTable.columnMessageEmitStatus] as String),
         messageType = EnumToString.fromString(
               VMessageType.values,
               map[MessageTable.columnMessageType] as String,
@@ -238,7 +242,8 @@ abstract class VBaseMessage {
             VMessageType.bug,
         reactionNumber = (map[MessageTable.columnReactionNumber] as int?) ?? 0,
         reactionSample = map[MessageTable.columnReactionSample] != null
-            ? (jsonDecode(map[MessageTable.columnReactionSample] as String) as List<dynamic>)
+            ? (jsonDecode(map[MessageTable.columnReactionSample] as String)
+                    as List<dynamic>)
                 .map((e) => ReactionSample.fromJson(e as Map<String, dynamic>))
                 .toList()
             : const [],
@@ -261,11 +266,13 @@ abstract class VBaseMessage {
       MessageTable.columnContent: content,
       MessageTable.columnIsDownloading: isDownloading ? 1 : 0,
       MessageTable.columnMessageType: messageType.name,
-      MessageTable.columnReplyTo: replyTo == null ? null : jsonEncode(replyTo!.toLocalMap()),
+      MessageTable.columnReplyTo:
+          replyTo == null ? null : jsonEncode(replyTo!.toLocalMap()),
       MessageTable.columnSeenAt: seenAt,
       MessageTable.columnIsOneSeenByMe: isOneSeenByMe ? 1 : 0,
       MessageTable.columnIsOneSeen: isOneSeen ? 1 : 0,
-      MessageTable.columnLinkAttachment: linkAtt == null ? null : jsonEncode(linkAtt!.toMap()),
+      MessageTable.columnLinkAttachment:
+          linkAtt == null ? null : jsonEncode(linkAtt!.toMap()),
       MessageTable.columnDeliveredAt: deliveredAt,
       MessageTable.columnForwardId: forwardId,
       MessageTable.columnAllDeletedAt: allDeletedAt,
@@ -275,7 +282,9 @@ abstract class VBaseMessage {
       MessageTable.columnCreatedAt: createdAt,
       MessageTable.columnUpdatedAt: updatedAt,
       MessageTable.columnReactionNumber: reactionNumber,
-      MessageTable.columnReactionSample: reactionSample.isEmpty ? null : jsonEncode(reactionSample.map((e) => e.toJson()).toList()),
+      MessageTable.columnReactionSample: reactionSample.isEmpty
+          ? null
+          : jsonEncode(reactionSample.map((e) => e.toJson()).toList()),
       MessageTable.columnCurrentUserEmoji: currentUserEmoji,
     };
     if (withOutConTr) {
@@ -290,7 +299,6 @@ abstract class VBaseMessage {
   List<PartValue> toListOfPartValue() {
     return [
       PartValue('content', content),
-      PartValue('localId', localId),
       PartValue('localId', localId),
       PartValue('isEncrypted', isEncrypted),
       PartValue('forwardLocalId', forwardId),
@@ -307,7 +315,8 @@ abstract class VBaseMessage {
   }
 
   @override
-  bool operator ==(Object other) => other is VBaseMessage && localId == other.localId;
+  bool operator ==(Object other) =>
+      other is VBaseMessage && localId == other.localId;
 
   @override
   int get hashCode => localId.hashCode;
@@ -327,11 +336,13 @@ abstract class VBaseMessage {
 
   bool get canNotSwipe => isAllDeleted || isDeleted || isOneSeen;
 
-  String get realContentMentionParsedWithAt => VStringUtils.parseVMentions(realContent);
+  String get realContentMentionParsedWithAt =>
+      VStringUtils.parseVMentions(realContent);
 
   DateTime get createdAtDate => DateTime.parse(createdAt).toLocal();
 
-  DateTime? get seenAtDate => seenAt == null ? null : DateTime.parse(seenAt!).toLocal();
+  DateTime? get seenAtDate =>
+      seenAt == null ? null : DateTime.parse(seenAt!).toLocal();
 
   DateTime get updatedAtDate => DateTime.parse(updatedAt).toLocal();
 

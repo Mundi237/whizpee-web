@@ -25,14 +25,16 @@ class CallMessageItem extends StatelessWidget {
     final callColor = _getCallColor();
     final statusColor = _getStatusColor();
     final callIcon = _getCallIcon();
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: context.isDark ? Colors.grey[900]?.withValues(alpha:0.4) : Colors.grey[50],
+        color: context.isDark
+            ? Colors.grey[900]?.withValues(alpha: 0.4)
+            : Colors.grey[50],
         border: Border.all(
-          color: callColor.withValues(alpha:0.2),
+          color: callColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -47,11 +49,10 @@ class CallMessageItem extends StatelessWidget {
                 peerUser: SBaseUser(
                   id: message.roomId,
                   fullName: S.of(context).group,
-                  userImage: "default_group_image.png",
+                  userImage: "",
                 ),
                 isCaller: message.isMeSender,
               ),
-
             );
           }
         },
@@ -82,12 +83,13 @@ class CallMessageItem extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      color: statusColor.withValues(alpha:0.1),
+                      color: statusColor.withValues(alpha: 0.1),
                       border: Border.all(
-                        color: statusColor.withValues(alpha:0.3),
+                        color: statusColor.withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),
@@ -96,12 +98,13 @@ class CallMessageItem extends StatelessWidget {
                   if (message.data.callStatus == VMessageCallStatus.ring) ...[
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        color: Colors.green.withValues(alpha:0.1),
+                        color: Colors.green.withValues(alpha: 0.1),
                         border: Border.all(
-                          color: Colors.green.withValues(alpha:0.3),
+                          color: Colors.green.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -140,14 +143,14 @@ class CallMessageItem extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: [
                       callColor,
-                      callColor.withValues(alpha:0.8),
+                      callColor.withValues(alpha: 0.8),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: callColor.withValues(alpha:0.3),
+                      color: callColor.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -172,7 +175,8 @@ class CallMessageItem extends StatelessWidget {
                       shape: BoxShape.circle,
                       color: Colors.green,
                       border: Border.all(
-                        color: context.isDark ? Colors.grey[900]! : Colors.white,
+                        color:
+                            context.isDark ? Colors.grey[900]! : Colors.white,
                         width: 2,
                       ),
                     ),

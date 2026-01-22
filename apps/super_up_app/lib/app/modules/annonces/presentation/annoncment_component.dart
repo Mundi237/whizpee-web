@@ -7,8 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import 'package:super_up/app/core/widgets/skeleton_loaders.dart';
 import 'package:super_up/app/modules/annonces/presentation/announcement_detail_page.dart';
 import 'package:super_up_core/super_up_core.dart';
+import 'package:super_up/app/core/utils/date_formatter.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart' show Annonces;
 
 class AnnoncmentComponent extends StatefulWidget {
@@ -40,15 +42,15 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
   }
 
   void _startSlideshow() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (!mounted) return;
       if (_pageController.hasClients && !_isHovered) {
         final nextIndex = (_currentImageIndex + 1) %
             (widget.announcement.images?.length ?? 1);
         _pageController.animateToPage(
           nextIndex,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOutCubic,
         );
       }
     });
@@ -73,13 +75,13 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
         widget.announcement.boostType?.title.toUpperCase() ?? 'GRATUIT';
     switch (boostTitle) {
       case 'PREMIUM':
-        return const Color(0xFFFFD700);
+        return AppTheme.primaryGreen;
       case 'GOLD':
-        return const Color(0xFFFFAA00);
+        return const Color(0xFFFFA726);
       case 'SILVER':
-        return const Color(0xFFC0C0C0);
+        return const Color(0xFF90A4AE);
       default:
-        return Colors.grey;
+        return Colors.grey.withValues(alpha: 0.7);
     }
   }
 
@@ -94,12 +96,11 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: GestureDetector(
         onTapDown: (_) {
-          HapticFeedback.lightImpact();
+          HapticFeedback.selectionClick();
           setState(() => _isPressed = true);
         },
         onTapUp: (_) {
           setState(() => _isPressed = false);
-          HapticFeedback.mediumImpact();
           context.toPage(
             AnnouncementDetailPage(announcement: widget.announcement),
           );
@@ -125,22 +126,22 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
               ),
               border: Border.all(
                 color: isBoosted
-                    ? boostColor.withValues(alpha: 0.5)
-                    : Colors.white.withValues(alpha: 0.2),
-                width: isBoosted ? 2.5 : 1.5,
+                    ? boostColor.withValues(alpha: 0.3)
+                    : Colors.white.withValues(alpha: 0.15),
+                width: isBoosted ? 1.5 : 1.0,
               ),
               boxShadow: [
                 if (isBoosted)
                   BoxShadow(
-                    color: boostColor.withValues(alpha: 0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                    spreadRadius: 1,
+                    color: boostColor.withValues(alpha: 0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                    spreadRadius: 0,
                   ),
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 15,
-                  offset: const Offset(0, 6),
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
@@ -192,7 +193,11 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
                                                   imageUrl: images[index],
                                                   fit: BoxFit.cover,
                                                   placeholder: (_, __) =>
-                                                      _buildPlaceholder(),
+                                                      SkeletonLoaders
+                                                          .announcementImage(
+                                                    width: 120,
+                                                    height: 150,
+                                                  ),
                                                   errorWidget: (_, __, ___) =>
                                                       _buildPlaceholder(),
                                                 );
@@ -286,15 +291,7 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
                                       ),
                                     ],
                                   ),
-                                )
-                                    .animate(
-                                        onPlay: (controller) =>
-                                            controller.repeat())
-                                    .shimmer(
-                                      duration: 2000.ms,
-                                      color:
-                                          Colors.white.withValues(alpha: 0.3),
-                                    ),
+                                ),
                               ),
                           ],
                         ),
@@ -455,7 +452,7 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
                                       ),
                                       const SizedBox(width: 3),
                                       Text(
-                                        DateFormat('dd MMM', 'fr_FR').format(
+                                        DateFormatter.formatRelativeTime(
                                             widget.announcement.createdAt),
                                         style: TextStyle(
                                           color: Colors.white
@@ -499,17 +496,7 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
                                       ),
                                     ],
                                   ),
-                                )
-                                    .animate(
-                                      onPlay: (controller) =>
-                                          controller.repeat(reverse: true),
-                                    )
-                                    .scale(
-                                      begin: const Offset(1.0, 1.0),
-                                      end: const Offset(1.05, 1.05),
-                                      duration: 2000.ms,
-                                      curve: Curves.easeInOut,
-                                    ),
+                                ),
                               ],
                             ),
                           ],
@@ -522,7 +509,7 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
             ),
           ),
         ),
-      ).animate().fadeIn(duration: 600.ms).slideX(begin: 0.1, end: 0),
+      ).animate().fadeIn(duration: 400.ms, delay: 100.ms),
     );
   }
 

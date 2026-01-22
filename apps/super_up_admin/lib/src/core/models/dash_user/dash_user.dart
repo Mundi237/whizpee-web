@@ -61,7 +61,7 @@ class DashUser {
         verifiedAt = null,
         isPrime = false,
         hasBadge = false,
-        userImage = "default_user_image.png",
+        userImage = "",
         registerStatus = RegisterStatus.accepted.name,
         registerMethod = RegisterMethod.email.name,
         banTo = null,
@@ -102,7 +102,7 @@ class DashUser {
           ? null
           : DashCountry.fromMap(map['countryId']),
       id: map['_id'] as String,
-      emailX: (map['email'] as String?)??"NOT",
+      emailX: (map['email'] as String?) ?? "NOT",
       isOnline: map['isOnline'] as bool? ?? false,
       isPrime: map['isPrime'] as bool? ?? false,
       hasBadge: map['hasBadge'] as bool? ?? false,
