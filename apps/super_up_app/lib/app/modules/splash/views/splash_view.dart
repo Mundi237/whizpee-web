@@ -2,14 +2,9 @@
 // All rights reserved. Use of this source code is governed by a
 // MIT license that can be found in the LICENSE file.
 
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:super_up/app/core/widgets/iconic_splash_logo.dart';
-import 'package:super_up/app/core/widgets/animated_whizpee_logo.dart';
 import 'package:super_up/app/modules/splash/controllers/splash_controller.dart';
-import 'package:super_up_core/super_up_core.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
@@ -65,6 +60,14 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    // Splash view UI commented out - direct navigation handled by controller
+    // The controller will navigate to OnbordingPage1 or HomeView based on auth state
+    return const Scaffold(
+      body: SizedBox
+          .shrink(), // Empty container while controller handles navigation
+    );
+
+    /* Original splash UI - commented out
     final isDark = VThemeListener.I.isDarkMode;
 
     return Scaffold(
@@ -419,5 +422,6 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
         ),
       ),
     );
+    */
   }
 }

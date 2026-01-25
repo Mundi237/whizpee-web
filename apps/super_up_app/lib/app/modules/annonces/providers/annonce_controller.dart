@@ -379,4 +379,57 @@ class AnnonceController extends ChangeNotifier {
       }
     }
   }
+
+  // Update annonce
+  Future<void> updateAnnonce(
+    BuildContext context, {
+    required String annonceId,
+    String? title,
+    String? description,
+    String? categorieId,
+    List<File>? newImages,
+    String? price,
+  }) async {
+    try {
+      await annonceService.updateAnnonce(
+        annonceId: annonceId,
+        title: title,
+        description: description,
+        categorieId: categorieId,
+        images: newImages,
+        price: price,
+      );
+
+      // Refresh the list
+      await getAnnonces(true);
+
+      if (context.mounted) {
+        VAppAlert.showSuccessSnackBar(
+          message: "Annonce modifiée avec succès",
+          context: context,
+        );
+      }
+    } catch (e) {
+      Utils.loggerError(e);
+      if (context.mounted) {
+        VAppAlert.showErrorSnackBar(
+          message: "Erreur lors de la modification: ${e.toString()}",
+          context: context,
+        );
+      }
+      rethrow;
+    }
+  }
+
+  // Delete annonce
+  Future<void> deleteAnnonce(String annonceId) async {
+    try {
+      await annonceService.deleteAnnonce(annonceId);
+      // Refresh the list
+      await getAnnonces(true);
+    } catch (e) {
+      Utils.loggerError(e);
+      rethrow;
+    }
+  }
 }

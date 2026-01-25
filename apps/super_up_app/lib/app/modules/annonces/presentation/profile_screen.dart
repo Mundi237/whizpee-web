@@ -11,6 +11,7 @@ import 'package:v_chat_sdk_core/v_chat_sdk_core.dart' show Annonces;
 import 'package:super_up/app/modules/annonces/presentation/announcement_detail_page.dart';
 import 'package:super_up/app/modules/annonces/presentation/announcements_page.dart';
 import 'package:super_up/app/modules/annonces/presentation/credits/new_wallet_page.dart';
+import 'package:super_up/app/modules/annonces/presentation/manage_announcements_page.dart';
 import 'package:super_up/app/modules/annonces/providers/annonce_controller.dart';
 import 'package:super_up/app/modules/home/mobile/settings_tab/views/settings_tab_view.dart';
 import 'package:super_up/app/modules/home/settings_modules/my_account/views/my_account_page.dart';
@@ -400,16 +401,13 @@ class _ProfileScreenState extends State<ProfileScreen>
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
-          // Announcements Button
+          // Manage Announcements Button
           Expanded(
             flex: 3,
             child: GestureDetector(
               onTap: () {
                 HapticFeedback.lightImpact();
-                if (kIsWeb) {
-                  context.toPage(AnnouncementsPage());
-                  return;
-                }
+                context.toPage(const ManageAnnouncementsPage());
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -433,16 +431,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons.campaign_rounded,
+                      Icons.edit_note_rounded,
                       color: Colors.white,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      "Mes Annonces",
+                      "Gérer mes annonces",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 13,
                         color: Colors.white,
                       ),
                     ),

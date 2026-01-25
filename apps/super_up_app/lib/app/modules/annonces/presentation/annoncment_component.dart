@@ -85,6 +85,24 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
     }
   }
 
+  String _buildLocationText() {
+    final quartier = widget.announcement.quartier;
+    final ville = widget.announcement.ville;
+
+    if (quartier != null &&
+        quartier.isNotEmpty &&
+        ville != null &&
+        ville.isNotEmpty) {
+      return '$quartier, $ville';
+    } else if (ville != null && ville.isNotEmpty) {
+      return ville;
+    } else if (quartier != null && quartier.isNotEmpty) {
+      return quartier;
+    } else {
+      return 'Localisation non spécifiée';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasImages = widget.announcement.images?.isNotEmpty ?? false;
@@ -414,7 +432,7 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
                                   const SizedBox(width: 4),
                                   Expanded(
                                     child: Text(
-                                      '${widget.announcement.ville ?? "Ville"}',
+                                      _buildLocationText(),
                                       style: TextStyle(
                                         color:
                                             Colors.white.withValues(alpha: 0.8),

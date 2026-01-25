@@ -6,6 +6,7 @@ class UserFilterDto {
   int limit;
   int page;
   String? fullName;
+  String? phone;
 
 //<editor-fold desc="Data Methods">
 
@@ -13,12 +14,14 @@ class UserFilterDto {
     required this.limit,
     required this.page,
     this.fullName,
+    this.phone,
   });
 
   UserFilterDto.init()
       : limit = 45,
         page = 1,
-        fullName = null;
+        fullName = null,
+        phone = null;
 
   @override
   bool operator ==(Object other) =>
@@ -27,25 +30,29 @@ class UserFilterDto {
           runtimeType == other.runtimeType &&
           limit == other.limit &&
           page == other.page &&
-          fullName == other.fullName);
+          fullName == other.fullName &&
+          phone == other.phone);
 
   @override
-  int get hashCode => limit.hashCode ^ page.hashCode ^ fullName.hashCode;
+  int get hashCode =>
+      limit.hashCode ^ page.hashCode ^ fullName.hashCode ^ phone.hashCode;
 
   @override
   String toString() {
-    return 'UserFilterDto{ limit: $limit, page: $page, fullName: $fullName,}';
+    return 'UserFilterDto{ limit: $limit, page: $page, fullName: $fullName, phone: $phone,}';
   }
 
   UserFilterDto copyWith({
     int? limit,
     int? page,
     String? fullName,
+    String? phone,
   }) {
     return UserFilterDto(
       limit: limit ?? this.limit,
       page: page ?? this.page,
       fullName: fullName ?? this.fullName,
+      phone: phone ?? this.phone,
     );
   }
 
@@ -54,6 +61,7 @@ class UserFilterDto {
       'limit': limit,
       'page': page,
       'fullName': fullName,
+      'phone': phone,
     };
   }
 
@@ -61,7 +69,8 @@ class UserFilterDto {
     return UserFilterDto(
       limit: map['limit'] as int,
       page: map['page'] as int,
-      fullName: map['fullName'] as String,
+      fullName: map['fullName'] as String?,
+      phone: map['phone'] as String?,
     );
   }
 

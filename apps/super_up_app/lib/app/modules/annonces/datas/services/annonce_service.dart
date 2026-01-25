@@ -162,4 +162,71 @@ class AnnonceService {
       rethrow;
     }
   }
+
+  Future<Annonces> updateAnnonce({
+    required String annonceId,
+    String? title,
+    String? description,
+    String? categorieId,
+    List<File>? images,
+    String? price,
+  }) async {
+    try {
+      final Map<String, dynamic> formDataMap = {};
+
+      // Ajouter seulement les champs modifiés
+      if (title != null) formDataMap['title'] = title;
+      if (description != null) formDataMap['description'] = description;
+      if (categorieId != null) formDataMap['category'] = categorieId;
+      if (price != null) formDataMap['price'] = price;
+
+      // Ajouter les nouvelles images si fournies
+      if (images != null && images.isNotEmpty) {
+        final imagesData = await Future.wait(images
+            .map(
+              (e) async => await MultipartFile.fromFile(e.path,
+                  filename: '${DateTime.now().millisecondsSinceEpoch}.png'),
+            )
+            .toList());
+        formDataMap['images'] = imagesData;
+      }
+
+      final FormData data = FormData.fromMap(formDataMap);
+
+      final result = await dio.request(
+        "/annonces/$annonceId",
+        data: data,
+        options: Options(
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization':
+                "Bearer ${VAppPref.getHashedString(key: SStorageKeys.vAccessToken.name)}",
+          },
+        ),
+      );
+
+      return Annonces.fromMap(result.data['data']);
+    } catch (e) {
+      Utils.loggerError(e);
+      rethrow;
+    }
+  }
+
+  Future<void> deleteAnnonce(String annonceId) async {
+    try {
+      await dio.delete(
+        "/annonces/$annonceId",
+        options: Options(
+          headers: {
+            'Authorization':
+                "Bearer ${VAppPref.getHashedString(key: SStorageKeys.vAccessToken.name)}",
+          },
+        ),
+      );
+    } catch (e) {
+      Utils.loggerError(e);
+      rethrow;
+    }
+  }
 }

@@ -3,11 +3,14 @@
 // MIT license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:super_up_core/super_up_core.dart';
-import 'package:s_translation/generated/l10n.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart';
 
 import '../../../core/api_service/profile/profile_api_service.dart';
@@ -24,6 +27,9 @@ class ChooseMembersController
   bool isFinishLoadMore = false;
   final String? groupId;
   final String? broadcastId;
+
+  // Cache des numéros de téléphone de l'annuaire pour le filtrage
+  Set<String> _phoneBookNumbers = {};
   ChooseMembersController(
     this.profileApiService,
     this.onDone,
@@ -35,7 +41,48 @@ class ChooseMembersController
 
   @override
   void onInit() {
-    getData();
+    _initializeAndGetData();
+  }
+
+  /// Initialise l'annuaire puis charge les données
+  Future<void> _initializeAndGetData() async {
+    await _initializePhoneBookNumbers();
+    await getData();
+  }
+
+  /// Initialise le cache des numéros de téléphone de l'annuaire
+  Future<void> _initializePhoneBookNumbers() async {
+    try {
+      // Essayer de récupérer les vrais contacts de l'annuaire
+      final localContacts = await contactService.getContactsFromLocal();
+      if (localContacts.isNotEmpty) {
+        _phoneBookNumbers = localContacts
+            .map((contact) => _normalizePhoneNumber(contact.phone))
+            .toSet();
+      }
+
+      // Essayer aussi les contacts actuels si disponibles
+      if (contactService.currentContacts.isNotEmpty) {
+        _phoneBookNumbers.addAll(contactService.currentContacts
+            .map((contact) => _normalizePhoneNumber(contact.phone)));
+      }
+
+      // Si toujours vide, essayer d'accéder directement via flutter_contacts
+      if (_phoneBookNumbers.isEmpty && (Platform.isAndroid || Platform.isIOS)) {
+        try {
+          await Permission.contacts.request();
+          final status = await Permission.contacts.status;
+
+          if (status.isGranted) {
+            await _tryGetContactsDirectly();
+          }
+        } catch (e) {
+          // Erreur silencieuse si les permissions sont refusées
+        }
+      }
+    } catch (e) {
+      // Erreur silencieuse si l'initialisation échoue
+    }
   }
 
   Future<void> getData() async {
@@ -68,7 +115,10 @@ class ChooseMembersController
           return users.map((e) => SSelectableUser(searchUser: e)).toList();
         } else {
           final users = await profileApiService.appUsers(_filterDto);
-          return users.map((e) => SSelectableUser(searchUser: e)).toList();
+          final filteredUsers = _filterUsersByPhoneBook(users);
+          return filteredUsers
+              .map((e) => SSelectableUser(searchUser: e))
+              .toList();
         }
       },
       onSuccess: (response) {
@@ -102,7 +152,12 @@ class ChooseMembersController
         },
         request: () async {
           _filterDto = UserFilterDto.init();
-          _filterDto.fullName = query;
+          // Recherche par téléphone si la query ressemble à un numéro
+          if (_isPhoneQuery(query)) {
+            _filterDto.phone = query;
+          } else {
+            _filterDto.fullName = query;
+          }
           isFinishLoadMore = false;
           var users = <SSearchUser>[];
 
@@ -120,6 +175,7 @@ class ChooseMembersController
             );
           } else {
             users = await profileApiService.appUsers(_filterDto);
+            users = _filterUsersByPhoneBook(users);
           }
           return users.map((e) => SSelectableUser(searchUser: e)).toList();
         },
@@ -188,7 +244,7 @@ class ChooseMembersController
   void onNext(BuildContext context) {
     if (!isThereSelection) {
       VAppAlert.showErrorSnackBar(
-        message: S.of(context).chooseAtLestOneMember,
+        message: "Choisissez au moins un membre",
         context: context,
       );
       return;
@@ -209,7 +265,10 @@ class ChooseMembersController
       request: () async {
         _filterDto.page = _filterDto.page + 1;
         final users = await profileApiService.appUsers(_filterDto);
-        return users.map((e) => SSelectableUser(searchUser: e)).toList();
+        final filteredUsers = _filterUsersByPhoneBook(users);
+        return filteredUsers
+            .map((e) => SSelectableUser(searchUser: e))
+            .toList();
       },
       onSuccess: (response) {
         if (response.isEmpty) {
@@ -237,5 +296,99 @@ class ChooseMembersController
       success: (data) => data.isNotEmpty,
       failure: (error) => false,
     );
+  }
+
+  /// Filtre les utilisateurs pour ne garder que ceux dont le phone correspond à l'annuaire
+  List<SSearchUser> _filterUsersByPhoneBook(List<SSearchUser> users) {
+    // Si l'annuaire est vide, retourner tous les utilisateurs
+    if (_phoneBookNumbers.isEmpty) {
+      return users;
+    }
+
+    // Filtrer pour ne garder que les utilisateurs avec un phone dans l'annuaire
+    final filteredUsers = users.where((user) {
+      final userPhone = user.phone;
+
+      if (userPhone == null || userPhone.isEmpty) {
+        return false;
+      }
+
+      // Normaliser le numéro de l'utilisateur pour la comparaison
+      final normalizedUserPhone = _normalizePhoneNumber(userPhone);
+
+      // Vérifier si le numéro normalisé est dans l'annuaire
+      return _phoneBookNumbers.contains(normalizedUserPhone);
+    }).toList();
+
+    return filteredUsers;
+  }
+
+  /// Détermine si une query de recherche ressemble à un numéro de téléphone
+  bool _isPhoneQuery(String query) {
+    // Considérer comme numéro si contient principalement des chiffres et commence par + ou chiffre
+    final cleanQuery = query.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    if (cleanQuery.isEmpty) return false;
+
+    // Si commence par + ou contient majoritairement des chiffres
+    if (cleanQuery.startsWith('+') ||
+        RegExp(r'^[0-9]+$').hasMatch(cleanQuery) ||
+        (cleanQuery.length > 3 &&
+            cleanQuery.replaceAll(RegExp(r'[^0-9]'), '').length /
+                    cleanQuery.length >
+                0.7)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Normalise un numéro de téléphone au format uniforme 237XXXXXXX
+  String _normalizePhoneNumber(String phone) {
+    // Nettoyer le numéro (enlever espaces, tirets, parenthèses)
+    String cleaned = phone.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+
+    // Enlever le + si présent
+    if (cleaned.startsWith('+')) {
+      cleaned = cleaned.substring(1);
+    }
+
+    // Si commence par 237, c'est déjà au bon format
+    if (cleaned.startsWith('237')) {
+      return cleaned;
+    }
+
+    // Si commence par 6 (format local camerounais), ajouter 237
+    if (cleaned.startsWith('6') && cleaned.length == 9) {
+      return '237$cleaned';
+    }
+
+    // Sinon retourner tel quel
+    return cleaned;
+  }
+
+  /// Essayer d'accéder directement aux contacts de l'annuaire via flutter_contacts
+  Future<void> _tryGetContactsDirectly() async {
+    try {
+      final contacts = await FlutterContacts.getContacts(withProperties: true);
+
+      final phoneNumbers = <String>{};
+      for (final contact in contacts) {
+        for (final phone in contact.phones) {
+          if (phone.number.isNotEmpty) {
+            // Normaliser le numéro au format 237XXXXXXX
+            final normalizedNumber = _normalizePhoneNumber(phone.number);
+            if (normalizedNumber.isNotEmpty) {
+              phoneNumbers.add(normalizedNumber);
+            }
+          }
+        }
+      }
+
+      if (phoneNumbers.isNotEmpty) {
+        _phoneBookNumbers = phoneNumbers;
+      }
+    } catch (e) {
+      // Erreur silencieuse si l'accès aux contacts échoue
+    }
   }
 }

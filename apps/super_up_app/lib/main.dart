@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_up/app/core/app/app_factory.dart';
 import 'package:super_up/app/core/initialization/app_initializer.dart';
+import 'debug_notifications.dart';
 
 /// Global navigator key used across the app
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -13,6 +14,9 @@ final navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   // Initialize all required app components
   await AppInitializer.initialize(navigatorKey);
+
+  // Lancer le diagnostic des notifications
+  await NotificationDebugHelper.runFullDiagnostic();
 
   // Run the app with the created widget
   runApp(

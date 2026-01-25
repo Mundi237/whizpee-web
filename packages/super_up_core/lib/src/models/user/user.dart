@@ -85,6 +85,7 @@ class SBaseUser {
 class SSearchUser {
   final SBaseUser baseUser;
   final String? bio;
+  final String? phone;
   final String createdAt;
   final List<SUserRole> roles;
 
@@ -93,6 +94,7 @@ class SSearchUser {
   const SSearchUser({
     required this.baseUser,
     required this.bio,
+    this.phone,
     required this.roles,
     required this.createdAt,
   });
@@ -127,6 +129,7 @@ class SSearchUser {
     return {
       ...baseUser.toMap(),
       'bio': bio,
+      'phone': phone,
       'createdAt': createdAt,
       'roles': roles.map((e) => e.name).toList(),
     };
@@ -136,6 +139,7 @@ class SSearchUser {
     return SSearchUser(
       baseUser: SBaseUser.fromMap(map),
       bio: map['bio'] as String?,
+      phone: map['phone'] as String?,
       roles: map['roles'] == null
           ? []
           : (map['roles'] as List)

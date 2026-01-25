@@ -20,7 +20,6 @@ import 'package:v_platform/v_platform.dart';
 import '../../../../main.dart';
 import '../../../core/app_config/app_config_controller.dart';
 import '../../auth/login/views/qr_code_web_screen.dart';
-import '../../auth/phone_login/phone_authentication.dart';
 import '../../auth/waiting_list/views/waiting_list_page.dart';
 import '../../home/home_controller/views/home_view.dart';
 import '../views/splash_view.dart';
@@ -110,7 +109,8 @@ class SplashController extends SLoadingController<String> {
       );
     }
 
-    await Future.delayed(const Duration(seconds: 5));
+    await Future.delayed(
+        const Duration(seconds: 1)); // Reduced from 5 seconds to 1 second
 
     final isLogin = VAppPref.getBool(SStorageKeys.isLogin.name);
     if (isLogin) {

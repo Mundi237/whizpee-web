@@ -49,9 +49,15 @@ class _BoostAnnonceBottomSheetState extends State<BoostAnnonceBottomSheet>
   @override
   Widget build(BuildContext context) {
     final controller = GetIt.I.get<BoostController>();
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final safeAreaBottom = mediaQuery.padding.bottom;
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
+      constraints: BoxConstraints(
+        maxHeight: screenHeight * 0.85,
+        minHeight: screenHeight * 0.5,
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -79,6 +85,7 @@ class _BoostAnnonceBottomSheetState extends State<BoostAnnonceBottomSheet>
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Handle bar
               Container(
@@ -90,24 +97,52 @@ class _BoostAnnonceBottomSheetState extends State<BoostAnnonceBottomSheet>
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              // Header
-              _buildHeader(),
-              // Afficher la sélection de durée seulement si ce n'est pas un boost gratuit
-              if (!isFreeBoost) ...[
-                // Selected duration display
-                _buildDurationDisplay(),
-                // Slider
-                _buildSlider(),
-                // Quick suggestions
-                _buildQuickSuggestions(),
-              ] else ...[
-                // Message pour le boost gratuit illimité
-                _buildFreeBoostInfo(),
-              ],
-              const Spacer(),
-              // Action buttons
-              _buildActionButtons(controller),
-              const SizedBox(height: 20),
+              // Scrollable content
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header
+                      _buildHeader(),
+                      // Afficher la sélection de durée seulement si ce n'est pas un boost gratuit
+                      if (!isFreeBoost) ...[
+                        // Selected duration display
+                        _buildDurationDisplay(),
+                        // Slider
+                        _buildSlider(),
+                        // Quick suggestions
+                        _buildQuickSuggestions(),
+                      ] else ...[
+                        // Message pour le boost gratuit illimité
+                        _buildFreeBoostInfo(),
+                      ],
+                      SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+              // Action buttons (fixed at bottom)
+              Container(
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  bottom: safeAreaBottom > 0 ? safeAreaBottom : 20,
+                  top: 16,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      const Color(0xFF2D1B4E),
+                      const Color(0xFF2D1B4E).withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+                child: _buildActionButtons(controller),
+              ),
             ],
           ),
         ),

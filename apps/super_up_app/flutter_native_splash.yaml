@@ -2,5 +2,9 @@ flutter_native_splash:
   web: true
   android: true
   ios: true
-  color: "#EEEDE7" # Background color
-  image: assets/logo.jpg # Path to your splash image
+  color: "#1A0E2E" # Dark purple background (matching app gradient)
+  image: assets/logo.png # Whizpee text logo
+  android_12:
+    image: assets/logo.png
+    color: "#1A0E2E"
+  web_image_mode: center

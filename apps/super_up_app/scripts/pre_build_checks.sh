@@ -138,10 +138,10 @@ if [ -d "$APP_PATH/assets" ]; then
     log_success "Dossier assets trouvé"
     
     # Vérifier les assets critiques
-    if [ -f "$APP_PATH/assets/logo.jpg" ]; then
+    if [ -f "$APP_PATH/assets/logo.png" ]; then
         log_success "Logo de l'app trouvé"
     else
-        log_warning "Logo de l'app manquant (assets/logo.jpg)"
+        log_warning "Logo de l'app manquant (assets/logo.png)"
     fi
 else
     log_warning "Dossier assets manquant"

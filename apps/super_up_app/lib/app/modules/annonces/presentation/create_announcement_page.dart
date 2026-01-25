@@ -1536,18 +1536,17 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage>
                           return null;
                         },
                       ),
-                      const SizedBox(height: 20),
-                      CustomTextField(
-                        label: 'Prix (XAF)',
-                        hint: 'Ex: 150000 (optionnel)',
-                        keyboardType: TextInputType.number,
-                        controller: annonceController.priceController,
-                        prefixText: 'XAF',
-                        validator: (val) {
-                          // Prix est optionnel selon l'API
-                          return null;
-                        },
-                      ),
+                      // CustomTextField(
+                      //   label: 'Prix (XAF)',
+                      //   hint: 'Ex: 150000 (optionnel)',
+                      //   keyboardType: TextInputType.number,
+                      //   controller: annonceController.priceController,
+                      //   prefixText: 'XAF',
+                      //   validator: (val) {
+                      //     // Prix est optionnel selon l'API
+                      //     return null;
+                      //   },
+                      // ),
                     ],
                   ),
                 ),
