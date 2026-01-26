@@ -3958,6 +3958,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Users will appear here when available'**
   String get usersWillAppearHere;
+
+  /// No description provided for @updateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Required'**
+  String get updateRequired;
+
+  /// No description provided for @updateRequiredMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'A new version of the app is available. Please update to continue using the app.'**
+  String get updateRequiredMessage;
+
+  /// No description provided for @updateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Now'**
+  String get updateNow;
+
+  /// No description provided for @laterButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get laterButton;
+
+  /// No description provided for @ignoreButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore'**
+  String get ignoreButton;
 }
 
 class _AppLocalizationsDelegate

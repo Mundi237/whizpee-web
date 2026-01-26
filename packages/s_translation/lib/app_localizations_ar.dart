@@ -2003,4 +2003,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get usersWillAppearHere => 'سيظهر المستخدمون هنا عند توفرهم';
+
+  @override
+  String get updateRequired => 'Update Required';
+
+  @override
+  String get updateRequiredMessage =>
+      'A new version of the app is available. Please update to continue using the app.';
+
+  @override
+  String get updateNow => 'Update Now';
+
+  @override
+  String get laterButton => 'Later';
+
+  @override
+  String get ignoreButton => 'Ignore';
 }

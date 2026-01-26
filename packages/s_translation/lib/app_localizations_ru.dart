@@ -2035,4 +2035,20 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get usersWillAppearHere => 'Users will appear here when available';
+
+  @override
+  String get updateRequired => 'Update Required';
+
+  @override
+  String get updateRequiredMessage =>
+      'A new version of the app is available. Please update to continue using the app.';
+
+  @override
+  String get updateNow => 'Update Now';
+
+  @override
+  String get laterButton => 'Later';
+
+  @override
+  String get ignoreButton => 'Ignore';
 }
