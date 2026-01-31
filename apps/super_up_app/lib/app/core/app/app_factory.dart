@@ -8,9 +8,11 @@ import 'package:oktoast/oktoast.dart';
 import 'package:phone_form_field/phone_form_field.dart';
 import 'package:s_translation/generated/l10n.dart';
 import 'package:super_up/app/core/theme/app_theme_manager.dart';
+import 'package:super_up/app/core/utils/force_update_config.dart';
 import 'package:super_up/app/core/widgets/main_builder.dart';
 import 'package:super_up/app/modules/splash/views/splash_view.dart';
 import 'package:super_up_core/super_up_core.dart';
+import 'package:upgrader/upgrader.dart';
 
 /// Factory class for creating the application widget
 class AppFactory {
@@ -35,7 +37,9 @@ class AppFactory {
               builder: (context, child) => MainBuilder(
                     child: child,
                   ),
-              home: const SplashView(),
+              home: const _UpgradeWrapper(
+                child: SplashView(),
+              ),
               debugShowCheckedModeBanner: false,
               theme: AppThemeManager.getLightTheme(),
               darkTheme: AppThemeManager.getDarkTheme(),
@@ -43,6 +47,26 @@ class AppFactory {
               ),
         );
       },
+    );
+  }
+}
+
+/// Wrapper widget for the upgrade alert
+class _UpgradeWrapper extends StatelessWidget {
+  final Widget child;
+
+  const _UpgradeWrapper({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return UpgradeAlert(
+      upgrader: ForceUpdateConfig.createUpgrader(),
+      // Force update settings - no way to dismiss
+      showIgnore: false, // No "Ignore" button
+      showLater: false, // No "Later" button
+      barrierDismissible: false, // Cannot dismiss by tapping outside
+      shouldPopScope: () => false, // Prevent back button from dismissing
+      child: child,
     );
   }
 }

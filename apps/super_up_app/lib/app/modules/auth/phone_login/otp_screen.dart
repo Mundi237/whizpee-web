@@ -171,580 +171,600 @@ class _OTPScreenState extends State<OTPScreen>
                 ),
               ),
               // Main content
-              Column(
-                children: [
-                  // Top bar
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withValues(alpha: 0.08),
-                            Colors.white.withValues(alpha: 0.04),
-                          ],
-                        ),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          width: 1,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Row(
-                            children: [
-                              Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () {
-                                    HapticFeedback.mediumImpact();
-                                    context.pop();
-                                  },
-                                  borderRadius: BorderRadius.circular(14),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.white.withValues(alpha: 0.12),
-                                          Colors.white.withValues(alpha: 0.06),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Icon(
-                                      Icons.arrow_back_ios_new_rounded,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth > 900) {
+                    // Web/Tablet Layout (Split View)
+                    return Column(
+                      children: [
+                        _buildTopBar(context),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 64, vertical: 48),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                // Left Column: Header Info
+                                Expanded(
+                                  flex: 1,
+                                  child: _buildHeaderCard(context, isWeb: true),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    )
-                        .animate()
-                        .fadeIn(duration: 500.ms)
-                        .slideY(begin: -0.3, end: 0),
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: size.height * 0.05),
-                          // Header card
-                          Container(
-                            padding: const EdgeInsets.all(28),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(28),
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.white.withValues(alpha: 0.1),
-                                  Colors.white.withValues(alpha: 0.05),
-                                ],
-                              ),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  blurRadius: 30,
-                                  offset: const Offset(0, 10),
+                                const SizedBox(width: 80),
+                                // Right Column: Input Form
+                                Expanded(
+                                  flex: 1,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      _buildInputSection(context),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(28),
-                              child: BackdropFilter(
-                                filter:
-                                    ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            AppTheme.primaryGreen
-                                                .withValues(alpha: 0.3),
-                                            AppTheme.primaryGreen
-                                                .withValues(alpha: 0.15),
-                                          ],
-                                        ),
-                                        border: Border.all(
-                                          color: AppTheme.primaryGreen
-                                              .withValues(alpha: 0.4),
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        Icons.lock_rounded,
-                                        size: 32,
-                                        color: AppTheme.primaryGreen,
-                                      ),
-                                    )
-                                        .animate()
-                                        .fadeIn(duration: 600.ms, delay: 200.ms)
-                                        .scale(begin: const Offset(0.8, 0.8)),
-                                    const SizedBox(height: 20),
-                                    Text(
-                                      "Saisissez le code reçu",
-                                      style: TextStyle(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                        height: 1.2,
-                                        letterSpacing: -0.5,
-                                      ),
-                                    )
-                                        .animate()
-                                        .fadeIn(duration: 600.ms, delay: 300.ms)
-                                        .slideY(begin: 0.2, end: 0),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      "Entrez le code à 6 chiffres envoyé par SMS au ${formatPhoneNumber(widget.userPhone)}",
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        color: Colors.white
-                                            .withValues(alpha: 0.75),
-                                        height: 1.6,
-                                        letterSpacing: 0.2,
-                                      ),
-                                    )
-                                        .animate()
-                                        .fadeIn(duration: 600.ms, delay: 500.ms)
-                                        .slideY(begin: 0.2, end: 0),
-                                  ],
-                                ),
-                              ),
+                          ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    // Mobile Layout
+                    return Column(
+                      children: [
+                        _buildTopBar(context),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 32),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(height: size.height * 0.05),
+                                _buildHeaderCard(context, isWeb: false),
+                                const SizedBox(height: 40),
+                                _buildInputSection(context),
+                                const SizedBox(height: 40),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 40),
-
-                          // OTP Input with glassmorphism
-                          Center(
-                            child: Pinput(
-                              length: 6,
-                              pinputAutovalidateMode:
-                                  PinputAutovalidateMode.onSubmit,
-                              showCursor: true,
-                              autofocus: true,
-                              controller: codeController,
-                              onCompleted: (pin) {
-                                HapticFeedback.mediumImpact();
-                                if (!_isLoading) _login();
-                              },
-                              onChanged: (value) {
-                                setState(() {
-                                  code = value;
-                                  if (_hasError) _hasError = false;
-                                  if (errorText != null) errorText = null;
-                                });
-                                HapticFeedback.selectionClick();
-                              },
-                              defaultPinTheme: PinTheme(
-                                width: 54,
-                                height: 64,
-                                textStyle: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.white.withValues(alpha: 0.12),
-                                      Colors.white.withValues(alpha: 0.06),
-                                    ],
-                                  ),
-                                  border: Border.all(
-                                    color: _hasError
-                                        ? Colors.red.shade400
-                                        : Colors.white.withValues(alpha: 0.2),
-                                    width: 1.5,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              focusedPinTheme: PinTheme(
-                                width: 54,
-                                height: 64,
-                                textStyle: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.white.withValues(alpha: 0.18),
-                                      Colors.white.withValues(alpha: 0.1),
-                                    ],
-                                  ),
-                                  border: Border.all(
-                                    color: _hasError
-                                        ? Colors.red
-                                        : AppTheme.primaryGreen,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: _hasError
-                                          ? Colors.red.withValues(alpha: 0.4)
-                                          : AppTheme.primaryGreen
-                                              .withValues(alpha: 0.4),
-                                      blurRadius: 12,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              submittedPinTheme: PinTheme(
-                                width: 54,
-                                height: 64,
-                                textStyle: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      AppTheme.primaryGreen
-                                          .withValues(alpha: 0.25),
-                                      AppTheme.primaryGreen
-                                          .withValues(alpha: 0.15),
-                                    ],
-                                  ),
-                                  border: Border.all(
-                                    color: AppTheme.primaryGreen,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              errorPinTheme: PinTheme(
-                                width: 54,
-                                height: 64,
-                                textStyle: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.red.shade900
-                                          .withValues(alpha: 0.3),
-                                      Colors.red.shade900
-                                          .withValues(alpha: 0.15),
-                                    ],
-                                  ),
-                                  border:
-                                      Border.all(color: Colors.red, width: 2),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                            ),
-                          )
-                              .animate()
-                              .fadeIn(duration: 600.ms, delay: 700.ms)
-                              .scale(begin: const Offset(0.95, 0.95)),
-
-                          // Error Message
-                          if (errorText != null)
-                            Container(
-                              margin: const EdgeInsets.only(top: 24),
-                              padding: const EdgeInsets.all(18),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.red.shade900.withValues(alpha: 0.4),
-                                    Colors.red.shade900.withValues(alpha: 0.2),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: Colors.red.shade400
-                                      .withValues(alpha: 0.6),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.red.withValues(alpha: 0.2),
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: BackdropFilter(
-                                  filter:
-                                      ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Colors.red.shade400
-                                              .withValues(alpha: 0.2),
-                                        ),
-                                        child: Icon(
-                                          Icons.error_rounded,
-                                          color: Colors.red.shade200,
-                                          size: 24,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 14),
-                                      Expanded(
-                                        child: Text(
-                                          errorText!,
-                                          style: TextStyle(
-                                            color: Colors.red.shade50,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            letterSpacing: 0.2,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ).animate().fadeIn(duration: 300.ms).shake(),
-
-                          const SizedBox(height: 32),
-                          // Resend code option with glassmorphism
-                          Center(
-                            child: Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.white.withValues(alpha: 0.06),
-                                    Colors.white.withValues(alpha: 0.03),
-                                  ],
-                                ),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                  width: 1,
-                                ),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: BackdropFilter(
-                                  filter:
-                                      ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        Icons.access_time_rounded,
-                                        color:
-                                            Colors.white.withValues(alpha: 0.7),
-                                        size: 20,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        "Vous n'avez pas reçu le code ?",
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.white
-                                              .withValues(alpha: 0.7),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      _isResendActive
-                                          ? TextButton(
-                                              onPressed: () {
-                                                HapticFeedback.mediumImpact();
-                                                _resendCode();
-                                              },
-                                              style: TextButton.styleFrom(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 24,
-                                                  vertical: 12,
-                                                ),
-                                                backgroundColor: AppTheme
-                                                    .primaryGreen
-                                                    .withValues(alpha: 0.15),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                              ),
-                                              child: Text(
-                                                "Renvoyer le code",
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppTheme.primaryGreen,
-                                                  fontSize: 16,
-                                                  letterSpacing: 0.3,
-                                                ),
-                                              ),
-                                            )
-                                          : Text(
-                                              "Renvoyer le code dans $_remainingSeconds s",
-                                              style: TextStyle(
-                                                color: Colors.white
-                                                    .withValues(alpha: 0.5),
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ).animate().fadeIn(duration: 600.ms, delay: 900.ms),
-                          const SizedBox(height: 32),
-
-                          // Verify Button with premium design
-                          GestureDetector(
-                            onTapDown: (_) {
-                              if (isBtnActive() && !_isLoading) {
-                                HapticFeedback.lightImpact();
-                                setState(() => _isButtonHovered = true);
-                              }
-                            },
-                            onTapUp: (_) {
-                              if (isBtnActive() && !_isLoading) {
-                                setState(() => _isButtonHovered = false);
-                                HapticFeedback.mediumImpact();
-                                _login();
-                              }
-                            },
-                            onTapCancel: () {
-                              setState(() => _isButtonHovered = false);
-                            },
-                            child: AnimatedScale(
-                              scale: _isButtonHovered &&
-                                      isBtnActive() &&
-                                      !_isLoading
-                                  ? 0.97
-                                  : 1.0,
-                              duration: const Duration(milliseconds: 150),
-                              curve: Curves.easeOut,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                width: double.infinity,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 22),
-                                decoration: BoxDecoration(
-                                  gradient: (isBtnActive() && !_isLoading)
-                                      ? LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: [
-                                            AppTheme.primaryGreen,
-                                            AppTheme.primaryGreen
-                                                .withValues(alpha: 0.85),
-                                          ],
-                                        )
-                                      : LinearGradient(
-                                          colors: [
-                                            Colors.white
-                                                .withValues(alpha: 0.15),
-                                            Colors.white.withValues(alpha: 0.1),
-                                          ],
-                                        ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: (isBtnActive() && !_isLoading)
-                                      ? [
-                                          BoxShadow(
-                                            color: AppTheme.primaryGreen
-                                                .withValues(alpha: 0.5),
-                                            blurRadius: 24,
-                                            spreadRadius: 0,
-                                            offset: const Offset(0, 10),
-                                          ),
-                                          BoxShadow(
-                                            color: AppTheme.primaryGreen
-                                                .withValues(alpha: 0.25),
-                                            blurRadius: 12,
-                                            spreadRadius: -2,
-                                            offset: const Offset(0, 4),
-                                          ),
-                                        ]
-                                      : [
-                                          BoxShadow(
-                                            color: Colors.black
-                                                .withValues(alpha: 0.1),
-                                            blurRadius: 10,
-                                            offset: const Offset(0, 5),
-                                          ),
-                                        ],
-                                ),
-                                child: Center(
-                                  child: _isLoading
-                                      ? SizedBox(
-                                          width: 28,
-                                          height: 28,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 3,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                    Colors.white),
-                                          ),
-                                        )
-                                      : Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.check_circle_rounded,
-                                              color: Colors.white,
-                                              size: 22,
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Text(
-                                              "Confirmer",
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                                letterSpacing: 0.3,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                ),
-                              ),
-                            ),
-                          )
-                              .animate()
-                              .fadeIn(duration: 600.ms, delay: 1100.ms)
-                              .slideY(begin: 0.2, end: 0),
-                          const SizedBox(height: 40),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                        ),
+                      ],
+                    );
+                  }
+                },
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTopBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withValues(alpha: 0.08),
+              Colors.white.withValues(alpha: 0.04),
+            ],
+          ),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.12),
+            width: 1,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Row(
+              children: [
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      context.pop();
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: 0.12),
+                            Colors.white.withValues(alpha: 0.06),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.3, end: 0),
+    );
+  }
+
+  Widget _buildHeaderCard(BuildContext context, {required bool isWeb}) {
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.1),
+            Colors.white.withValues(alpha: 0.05),
+          ],
+        ),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.15),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment:
+                isWeb ? MainAxisAlignment.center : MainAxisAlignment.start,
+            mainAxisSize: isWeb ? MainAxisSize.max : MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.primaryGreen.withValues(alpha: 0.3),
+                      AppTheme.primaryGreen.withValues(alpha: 0.15),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: AppTheme.primaryGreen.withValues(alpha: 0.4),
+                    width: 2,
+                  ),
+                ),
+                child: Icon(
+                  Icons.lock_rounded,
+                  size: 32,
+                  color: AppTheme.primaryGreen,
+                ),
+              )
+                  .animate()
+                  .fadeIn(duration: 600.ms, delay: 200.ms)
+                  .scale(begin: const Offset(0.8, 0.8)),
+              const SizedBox(height: 20),
+              Text(
+                "Saisissez le code reçu",
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  height: 1.2,
+                  letterSpacing: -0.5,
+                ),
+              )
+                  .animate()
+                  .fadeIn(duration: 600.ms, delay: 300.ms)
+                  .slideY(begin: 0.2, end: 0),
+              const SizedBox(height: 12),
+              Text(
+                "Entrez le code à 6 chiffres envoyé par SMS au ${formatPhoneNumber(widget.userPhone)}",
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.white.withValues(alpha: 0.75),
+                  height: 1.6,
+                  letterSpacing: 0.2,
+                ),
+              )
+                  .animate()
+                  .fadeIn(duration: 600.ms, delay: 500.ms)
+                  .slideY(begin: 0.2, end: 0),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputSection(BuildContext context) {
+    return Column(
+      children: [
+        // OTP Input with glassmorphism
+        Center(
+          child: Pinput(
+            length: 6,
+            pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
+            showCursor: true,
+            autofocus: true,
+            controller: codeController,
+            onCompleted: (pin) {
+              HapticFeedback.mediumImpact();
+              if (!_isLoading) _login();
+            },
+            onChanged: (value) {
+              setState(() {
+                code = value;
+                if (_hasError) _hasError = false;
+                if (errorText != null) errorText = null;
+              });
+              HapticFeedback.selectionClick();
+            },
+            defaultPinTheme: PinTheme(
+              width: 54,
+              height: 64,
+              textStyle: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withValues(alpha: 0.12),
+                    Colors.white.withValues(alpha: 0.06),
+                  ],
+                ),
+                border: Border.all(
+                  color: _hasError
+                      ? Colors.red.shade400
+                      : Colors.white.withValues(alpha: 0.2),
+                  width: 1.5,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            focusedPinTheme: PinTheme(
+              width: 54,
+              height: 64,
+              textStyle: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withValues(alpha: 0.18),
+                    Colors.white.withValues(alpha: 0.1),
+                  ],
+                ),
+                border: Border.all(
+                  color: _hasError ? Colors.red : AppTheme.primaryGreen,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: _hasError
+                        ? Colors.red.withValues(alpha: 0.4)
+                        : AppTheme.primaryGreen.withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+            ),
+            submittedPinTheme: PinTheme(
+              width: 54,
+              height: 64,
+              textStyle: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primaryGreen.withValues(alpha: 0.25),
+                    AppTheme.primaryGreen.withValues(alpha: 0.15),
+                  ],
+                ),
+                border: Border.all(
+                  color: AppTheme.primaryGreen,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            errorPinTheme: PinTheme(
+              width: 54,
+              height: 64,
+              textStyle: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.red.shade900.withValues(alpha: 0.3),
+                    Colors.red.shade900.withValues(alpha: 0.15),
+                  ],
+                ),
+                border: Border.all(color: Colors.red, width: 2),
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+        )
+            .animate()
+            .fadeIn(duration: 600.ms, delay: 700.ms)
+            .scale(begin: const Offset(0.95, 0.95)),
+
+        // Error Message
+        if (errorText != null)
+          Container(
+            margin: const EdgeInsets.only(top: 24),
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.red.shade900.withValues(alpha: 0.4),
+                  Colors.red.shade900.withValues(alpha: 0.2),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.red.shade400.withValues(alpha: 0.6),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.red.withValues(alpha: 0.2),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.red.shade400.withValues(alpha: 0.2),
+                      ),
+                      child: Icon(
+                        Icons.error_rounded,
+                        color: Colors.red.shade200,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        errorText!,
+                        style: TextStyle(
+                          color: Colors.red.shade50,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ).animate().fadeIn(duration: 300.ms).shake(),
+
+        const SizedBox(height: 32),
+        // Resend code option with glassmorphism
+        Center(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withValues(alpha: 0.06),
+                  Colors.white.withValues(alpha: 0.03),
+                ],
+              ),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.1),
+                width: 1,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.access_time_rounded,
+                      color: Colors.white.withValues(alpha: 0.7),
+                      size: 20,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Vous n'avez pas reçu le code ?",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _isResendActive
+                        ? TextButton(
+                            onPressed: () {
+                              HapticFeedback.mediumImpact();
+                              _resendCode();
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                              backgroundColor:
+                                  AppTheme.primaryGreen.withValues(alpha: 0.15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              "Renvoyer le code",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryGreen,
+                                fontSize: 16,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            "Renvoyer le code dans $_remainingSeconds s",
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.5),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ).animate().fadeIn(duration: 600.ms, delay: 900.ms),
+        const SizedBox(height: 32),
+
+        // Verify Button with premium design
+        GestureDetector(
+          onTapDown: (_) {
+            if (isBtnActive() && !_isLoading) {
+              HapticFeedback.lightImpact();
+              setState(() => _isButtonHovered = true);
+            }
+          },
+          onTapUp: (_) {
+            if (isBtnActive() && !_isLoading) {
+              setState(() => _isButtonHovered = false);
+              HapticFeedback.mediumImpact();
+              _login();
+            }
+          },
+          onTapCancel: () {
+            setState(() => _isButtonHovered = false);
+          },
+          child: AnimatedScale(
+            scale:
+                _isButtonHovered && isBtnActive() && !_isLoading ? 0.97 : 1.0,
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 22),
+              decoration: BoxDecoration(
+                gradient: (isBtnActive() && !_isLoading)
+                    ? LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppTheme.primaryGreen,
+                          AppTheme.primaryGreen.withValues(alpha: 0.85),
+                        ],
+                      )
+                    : LinearGradient(
+                        colors: [
+                          Colors.white.withValues(alpha: 0.15),
+                          Colors.white.withValues(alpha: 0.1),
+                        ],
+                      ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: (isBtnActive() && !_isLoading)
+                    ? [
+                        BoxShadow(
+                          color: AppTheme.primaryGreen.withValues(alpha: 0.5),
+                          blurRadius: 24,
+                          spreadRadius: 0,
+                          offset: const Offset(0, 10),
+                        ),
+                        BoxShadow(
+                          color: AppTheme.primaryGreen.withValues(alpha: 0.25),
+                          blurRadius: 12,
+                          spreadRadius: -2,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+              ),
+              child: Center(
+                child: _isLoading
+                    ? SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.check_circle_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            "Confirmer",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+        )
+            .animate()
+            .fadeIn(duration: 600.ms, delay: 1100.ms)
+            .slideY(begin: 0.2, end: 0),
+      ],
     );
   }
 

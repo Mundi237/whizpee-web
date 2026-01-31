@@ -30,7 +30,7 @@ if (keystorePropertiesFile.exists()) {
 android {
     compileSdkVersion 36
     namespace = "com.whizpee.app"
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "29.0.14033849"
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -52,6 +52,13 @@ android {
         multiDexEnabled true
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-Wl,-z,max-page-size=16384"
+            }
+        }
     }
     signingConfigs {
         release {
@@ -68,9 +75,9 @@ android {
             signingConfig signingConfigs.release
             
             // Optimisation de la taille d'APK - désactivé pour permettre split-per-abi
-            // ndk {
-            //     abiFilters 'arm64-v8a'
-            // }
+             ndk {
+                 abiFilters 'arm64-v8a', 'x86_64'
+             }
         }
     }
 
@@ -81,7 +88,7 @@ flutter {
 }
 
 dependencies {
-    implementation 'com.google.android.gms:play-services-auth:20.0.0'
+    implementation 'com.google.android.gms:play-services-auth:21.0.0'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'com.google.android.play:integrity:1.4.0'

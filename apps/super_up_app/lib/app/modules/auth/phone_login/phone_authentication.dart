@@ -130,226 +130,287 @@ class _PhoneAuthenticationState extends State<PhoneAuthentication>
                 ),
               ),
               // Main content
-              Column(
-                children: [
-                  // Top bar with glassmorphism
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withValues(alpha: 0.08),
-                            Colors.white.withValues(alpha: 0.04),
-                          ],
-                        ),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          width: 1,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () {
-                                    HapticFeedback.mediumImpact();
-                                    context.pop();
-                                  },
-                                  borderRadius: BorderRadius.circular(14),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.white.withValues(alpha: 0.12),
-                                          Colors.white.withValues(alpha: 0.06),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Icon(
-                                      Icons.arrow_back_ios_new_rounded,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Row(
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth > 900) {
+                    // Web/Tablet Layout (Split View)
+                    return Column(
+                      children: [
+                        _buildTopBar(context),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 64, vertical: 48),
+                            child: Form(
+                              key: _formKey,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  IconButton(
-                                    onPressed: _showLanguageSelector,
-                                    icon: Icon(
-                                      Icons.language_rounded,
-                                      color:
-                                          Colors.white.withValues(alpha: 0.8),
-                                    ),
+                                  // Left Column: Header Info
+                                  Expanded(
+                                    flex: 1,
+                                    child:
+                                        _buildHeaderCard(context, isWeb: true),
                                   ),
-                                  IconButton(
-                                    onPressed: _showThemeSelector,
-                                    icon: Icon(
-                                      VThemeListener.I.isDarkMode
-                                          ? Icons.light_mode_rounded
-                                          : Icons.dark_mode_rounded,
-                                      color:
-                                          Colors.white.withValues(alpha: 0.8),
+                                  const SizedBox(width: 80),
+                                  // Right Column: Input Form
+                                  Expanded(
+                                    flex: 1,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        _buildPhoneInput(context)
+                                            .animate()
+                                            .fadeIn(
+                                                duration: 600.ms, delay: 700.ms)
+                                            .slideY(begin: 0.2, end: 0),
+                                        if (_errorMessage != null) ...[
+                                          const SizedBox(height: 16),
+                                          _buildErrorMessage(context)
+                                              .animate()
+                                              .fadeIn(duration: 300.ms)
+                                              .shake(),
+                                        ],
+                                        const SizedBox(height: 32),
+                                        _buildSubmitButton(context)
+                                            .animate()
+                                            .fadeIn(
+                                                duration: 600.ms, delay: 900.ms)
+                                            .slideY(begin: 0.2, end: 0),
+                                      ],
                                     ),
                                   ),
                                 ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    )
-                        .animate()
-                        .fadeIn(duration: 500.ms)
-                        .slideY(begin: -0.3, end: 0),
-                  ),
-                  Expanded(
-                    child: Form(
-                      key: _formKey,
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: size.height * 0.05),
-                            // Header card with glassmorphism
-                            Container(
-                              padding: const EdgeInsets.all(28),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(28),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Colors.white.withValues(alpha: 0.1),
-                                    Colors.white.withValues(alpha: 0.05),
-                                  ],
-                                ),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.15),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.2),
-                                    blurRadius: 30,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(28),
-                                child: BackdropFilter(
-                                  filter:
-                                      ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              AppTheme.primaryGreen
-                                                  .withValues(alpha: 0.3),
-                                              AppTheme.primaryGreen
-                                                  .withValues(alpha: 0.15),
-                                            ],
-                                          ),
-                                          border: Border.all(
-                                            color: AppTheme.primaryGreen
-                                                .withValues(alpha: 0.4),
-                                            width: 2,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          Icons.phone_android_rounded,
-                                          size: 32,
-                                          color: AppTheme.primaryGreen,
-                                        ),
-                                      )
-                                          .animate()
-                                          .fadeIn(
-                                              duration: 600.ms, delay: 200.ms)
-                                          .scale(begin: const Offset(0.8, 0.8)),
-                                      const SizedBox(height: 20),
-                                      Text(
-                                        "Vérification du numéro",
-                                        style: TextStyle(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                          height: 1.2,
-                                          letterSpacing: -0.5,
-                                        ),
-                                      )
-                                          .animate()
-                                          .fadeIn(
-                                              duration: 600.ms, delay: 300.ms)
-                                          .slideY(begin: 0.2, end: 0),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        "Entrez votre numéro de téléphone pour recevoir un code de confirmation.",
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: Colors.white
-                                              .withValues(alpha: 0.75),
-                                          height: 1.6,
-                                          letterSpacing: 0.2,
-                                        ),
-                                      )
-                                          .animate()
-                                          .fadeIn(
-                                              duration: 600.ms, delay: 500.ms)
-                                          .slideY(begin: 0.2, end: 0),
-                                    ],
-                                  ),
-                                ),
                               ),
                             ),
-                            const SizedBox(height: 40),
-                            _buildPhoneInput(context)
-                                .animate()
-                                .fadeIn(duration: 600.ms, delay: 700.ms)
-                                .slideY(begin: 0.2, end: 0),
-                            if (_errorMessage != null) ...[
-                              const SizedBox(height: 16),
-                              _buildErrorMessage(context)
-                                  .animate()
-                                  .fadeIn(duration: 300.ms)
-                                  .shake(),
-                            ],
-                            const SizedBox(height: 32),
-                            _buildSubmitButton(context)
-                                .animate()
-                                .fadeIn(duration: 600.ms, delay: 900.ms)
-                                .slideY(begin: 0.2, end: 0),
-                            const SizedBox(height: 40),
+                          ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    // Mobile Layout
+                    return Column(
+                      children: [
+                        _buildTopBar(context),
+                        Expanded(
+                          child: Form(
+                            key: _formKey,
+                            child: SingleChildScrollView(
+                              physics: const BouncingScrollPhysics(),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 32),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: size.height * 0.05),
+                                  _buildHeaderCard(context, isWeb: false),
+                                  const SizedBox(height: 40),
+                                  _buildPhoneInput(context)
+                                      .animate()
+                                      .fadeIn(duration: 600.ms, delay: 700.ms)
+                                      .slideY(begin: 0.2, end: 0),
+                                  if (_errorMessage != null) ...[
+                                    const SizedBox(height: 16),
+                                    _buildErrorMessage(context)
+                                        .animate()
+                                        .fadeIn(duration: 300.ms)
+                                        .shake(),
+                                  ],
+                                  const SizedBox(height: 32),
+                                  _buildSubmitButton(context)
+                                      .animate()
+                                      .fadeIn(duration: 600.ms, delay: 900.ms)
+                                      .slideY(begin: 0.2, end: 0),
+                                  const SizedBox(height: 40),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8,
+          vertical: 8,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withValues(alpha: 0.08),
+              Colors.white.withValues(alpha: 0.04),
+            ],
+          ),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.12),
+            width: 1,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      context.pop();
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: 0.12),
+                            Colors.white.withValues(alpha: 0.06),
                           ],
                         ),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                        size: 20,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: _showLanguageSelector,
+                      icon: Icon(
+                        Icons.language_rounded,
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: _showThemeSelector,
+                      icon: Icon(
+                        VThemeListener.I.isDarkMode
+                            ? Icons.light_mode_rounded
+                            : Icons.dark_mode_rounded,
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.3, end: 0),
+    );
+  }
+
+  Widget _buildHeaderCard(BuildContext context, {required bool isWeb}) {
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.1),
+            Colors.white.withValues(alpha: 0.05),
+          ],
+        ),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.15),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment:
+                isWeb ? MainAxisAlignment.center : MainAxisAlignment.start,
+            mainAxisSize: isWeb ? MainAxisSize.max : MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.primaryGreen.withValues(alpha: 0.3),
+                      AppTheme.primaryGreen.withValues(alpha: 0.15),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: AppTheme.primaryGreen.withValues(alpha: 0.4),
+                    width: 2,
+                  ),
+                ),
+                child: Icon(
+                  Icons.phone_android_rounded,
+                  size: 32,
+                  color: AppTheme.primaryGreen,
+                ),
+              )
+                  .animate()
+                  .fadeIn(duration: 600.ms, delay: 200.ms)
+                  .scale(begin: const Offset(0.8, 0.8)),
+              const SizedBox(height: 20),
+              Text(
+                "Vérification du numéro",
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  height: 1.2,
+                  letterSpacing: -0.5,
+                ),
+              )
+                  .animate()
+                  .fadeIn(duration: 600.ms, delay: 300.ms)
+                  .slideY(begin: 0.2, end: 0),
+              const SizedBox(height: 12),
+              Text(
+                "Entrez votre numéro de téléphone pour recevoir un code de confirmation.",
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.white.withValues(alpha: 0.75),
+                  height: 1.6,
+                  letterSpacing: 0.2,
+                ),
+              )
+                  .animate()
+                  .fadeIn(duration: 600.ms, delay: 500.ms)
+                  .slideY(begin: 0.2, end: 0),
             ],
           ),
         ),

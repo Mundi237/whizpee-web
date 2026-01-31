@@ -1912,6 +1912,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.7.0"
+  os_detect:
+    dependency: transitive
+    description:
+      name: os_detect
+      sha256: "7d87c0dd98c6faf110d5aa498e9a6df02ffce4bb78cc9cfc8ad02929be9bb71f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.3"
   package_config:
     dependency: transitive
     description:
@@ -2854,6 +2862,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  upgrader:
+    dependency: "direct main"
+    description:
+      name: upgrader
+      sha256: "6997d84f49120d6179f6d839a87f0d9595b50641d17e058d8e0fc5f4bdf673fe"
+      url: "https://pub.dev"
+    source: hosted
+    version: "11.5.1"
   url_launcher:
     dependency: "direct main"
     description:

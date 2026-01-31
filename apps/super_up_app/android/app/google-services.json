@@ -38,6 +38,14 @@
           }
         },
         {
+          "client_id": "991808329176-roj1abbpks6caq8vvn0piosug47p331u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.whizpee.app",
+            "certificate_hash": "b6c8c7f0f75b5d13975970b59f98970848d59a1b"
+          }
+        },
+        {
           "client_id": "991808329176-t2528j6itvr6mdqb1aa3ak31tojp01m7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

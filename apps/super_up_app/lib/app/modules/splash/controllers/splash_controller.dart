@@ -120,7 +120,7 @@ class SplashController extends SLoadingController<String> {
     }
     final map = VAppPref.getMap(SStorageKeys.myProfile.name);
     if (map == null) {
-      if (VPlatforms.isDeskTop || VPlatforms.isWeb) {
+      if (VPlatforms.isDeskTop) {
         return context.toPage(
           const QrCodeWebScreen(),
           withAnimation: true,

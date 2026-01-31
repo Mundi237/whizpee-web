@@ -98,7 +98,9 @@ class AppInitializer {
   /// Initialize call services (CallKit + Foreground Service)
   static Future<void> _initCallServices() async {
     // Initialize existing CallKit functionality
-    CallKeepHandler.I.configureFlutterCallKeep(false);
+    if (!VPlatforms.isWeb) {
+      CallKeepHandler.I.configureFlutterCallKeep(false);
+    }
 
     // Initialize foreground call service for persistent call notifications
     if (VPlatforms.isAndroid) {
