@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,7 +12,7 @@ import 'package:s_translation/generated/l10n.dart';
 import 'package:super_up/app/core/api_service/auth/auth_api_service.dart';
 import 'package:super_up/app/core/api_service/profile/profile_api_service.dart';
 import 'package:super_up/app/core/app_nav/app_navigation.dart';
-import 'package:super_up/app/modules/annonces/datas/services/api_services.dart';
+// import 'package:super_up/app/modules/annonces/datas/services/api_services.dart' show refreshToken;
 import 'package:super_up/app/modules/annonces/datas/utils.dart';
 import 'package:super_up/app/modules/auth/auth_utils.dart';
 import 'package:super_up/app/modules/auth/continue_get_data/continue_get_data_screen.dart';
@@ -227,11 +228,18 @@ class SocialLoginAuth {
         await firebaseUserData.reload();
 
         // Après login Google réussi, rediriger vers la vérification du numéro de téléphone
+        // [MODIFIE] Flux modifié pour sauter la vérification téléphone
+        // if (context.mounted) {
+        //   AppNavigation.toPage(
+        //     context,
+        //     const PhoneAuthentication(),
+        //   );
+        // }
+        // return;
+
+        // [NOUVEAU] Flux direct: Login backend et navigation vers Home
         if (context.mounted) {
-          AppNavigation.toPage(
-            context,
-            const PhoneAuthentication(),
-          );
+          await _completeGoogleLogin(context, firebaseUserData, user);
         }
         return;
       } else {
@@ -260,6 +268,88 @@ class SocialLoginAuth {
         );
       }
     }
+  }
+
+  /// Complete Google login flow - appel le backend et gère la navigation
+  /// [NOUVEAU] Cette méthode remplace le flux avec vérification téléphone
+  static Future<void> _completeGoogleLogin(
+    BuildContext context,
+    User firebaseUserData,
+    GoogleSignInAccount googleUser,
+  ) async {
+    VAppAlert.showLoading(context: context, isDismissible: true);
+
+    await vSafeApiCall<SMyProfile>(
+      onLoading: () async {
+        // Loading déjà affiché
+      },
+      onError: (exception, trace) {
+        if (kDebugMode) {
+          print(trace);
+        }
+        Navigator.of(context).pop();
+        final errEnum = EnumToString.fromString(
+          ApiI18nErrorRes.values,
+          exception.toString(),
+        );
+        VAppAlert.showOkAlertDialog(
+          context: context,
+          title: S.of(context).error,
+          content: AuthTrUtils.tr(errEnum) ?? exception.toString(),
+        );
+      },
+      request: () async {
+        // [MODIFIE] Utilise firebase-login endpoint au lieu de login standard
+        // car l'auth Google nécessite un traitement spécial avec le token Firebase
+        final deviceHelper = DeviceInfoHelper();
+        final idToken = await firebaseUserData.getIdToken();
+        
+        // Utilise Dio pour appeler l'endpoint firebase-login
+        final response = await Dio().post(
+          "${SConstants.sApiBaseUrl}/auth/firebase-login",
+          data: {
+            "idToken": idToken,
+            "platform": VPlatforms.currentPlatform,
+            "deviceInfo": await deviceHelper.getDeviceMapInfo(),
+            "deviceId": await deviceHelper.getId(),
+            "language": VLanguageListener.I.appLocal.languageCode,
+            "pushKey": await (await VChatController
+                    .I.vChatConfig.currentPushProviderService)
+                ?.getToken(VPlatforms.isWeb ? SConstants.webVapidKey : null),
+          },
+        );
+        
+        // Sauvegarde le token reçu
+        final String accessToken = response.data['data']['accessToken'];
+        await VAppPref.setHashedString(
+          SStorageKeys.vAccessToken.name,
+          accessToken.toString().trim(),
+        );
+        
+        return profileService.getMyProfile();
+      },
+      onSuccess: (response) async {
+        Navigator.of(context).pop();
+        final status = response.registerStatus;
+        await VAppPref.setMap(
+          SStorageKeys.myProfile.name,
+          response.toMap(),
+        );
+        if (status == RegisterStatus.accepted) {
+          await VAppPref.setBool(SStorageKeys.isLogin.name, true);
+          _homeNav(context);
+        } else {
+          context.toPage(
+            WaitingListPage(
+              profile: response,
+            ),
+            withAnimation: true,
+            removeAll: true,
+          );
+        }
+      },
+      ignoreTimeoutAndNoInternet: false,
+    );
   }
 
   /// Trigger Google Sign-In for mobile platforms.
