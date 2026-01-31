@@ -1,9 +1,12 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:super_up/app/core/widgets/animated_whizpee_logo.dart';
+import 'package:super_up/app/core/widgets/google_sign_in_button.dart'
+    as google_button;
 import 'package:super_up/app/modules/auth/social_login_auth.dart';
 import 'package:super_up_core/super_up_core.dart';
 
@@ -18,6 +21,7 @@ class _LoginMethodSelectionState extends State<LoginMethodSelection>
     with SingleTickerProviderStateMixin {
   bool _isGoogleLoading = false;
   bool _isButtonHovered = false;
+  bool _isGoogleSignInInitialized = false;
   late AnimationController _floatController;
 
   @override
@@ -27,6 +31,18 @@ class _LoginMethodSelectionState extends State<LoginMethodSelection>
       duration: const Duration(milliseconds: 2500),
       vsync: this,
     )..repeat(reverse: true);
+
+    // Initialize Google Sign-In
+    _initializeGoogleSignIn();
+  }
+
+  Future<void> _initializeGoogleSignIn() async {
+    await SocialLoginAuth.initializeGoogleSignIn(context);
+    if (mounted) {
+      setState(() {
+        _isGoogleSignInInitialized = true;
+      });
+    }
   }
 
   @override
@@ -536,39 +552,56 @@ class _LoginMethodSelectionState extends State<LoginMethodSelection>
               ),
             ],
           ),
-          child: _isGoogleLoading
-              ? const Center(
-                  child: SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 3,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.black87,
+          child: kIsWeb
+              ? (_isGoogleSignInInitialized
+                  ? google_button.renderGoogleSignInButton(
+                      onPressed: _handleGoogleSignIn,
+                    )
+                  : const Center(
+                      child: SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.black87,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SvgPicture.string(
-                      googleSvgString,
-                      height: 32,
-                      width: 32,
-                    ),
-                    const SizedBox(width: 16),
-                    const Text(
-                      "Continuer avec Google",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                        letterSpacing: 0.3,
+                    ))
+              : _isGoogleLoading
+                  ? const Center(
+                      child: SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.black87,
+                          ),
+                        ),
                       ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SvgPicture.string(
+                          googleSvgString,
+                          height: 32,
+                          width: 32,
+                        ),
+                        const SizedBox(width: 16),
+                        const Text(
+                          "Continuer avec Google",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
         ),
       ),
     ).animate().fadeIn(duration: 600.ms, delay: 700.ms).scale(

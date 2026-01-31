@@ -165,128 +165,123 @@ class SocialLoginAuth {
   }
 
   static final GoogleSignIn googleSignIn = GoogleSignIn.instance;
-  static Future<void> loginByGoogle(BuildContext context) async {
-    try {
-      await googleSignIn.initialize();
-      List<String> scopes = [
-        'email',
-        'profile',
-      ];
-      GoogleSignInAccount googleUser =
-          await googleSignIn.authenticate(scopeHint: scopes);
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+  static StreamSubscription<GoogleSignInAuthenticationEvent>?
+      _googleAuthSubscription;
 
-      Utils.printLog(
-          "accesToken : ${googleAuth}, Id Token : ${googleAuth.idToken}");
+  /// Initialize Google Sign-In and set up listener.
+  /// This should be called during app initialization.
+  static Future<void> initializeGoogleSignIn(BuildContext context) async {
+    await googleSignIn.initialize();
+
+    // Listen to authentication events
+    _googleAuthSubscription?.cancel();
+    _googleAuthSubscription = googleSignIn.authenticationEvents.listen(
+      (GoogleSignInAuthenticationEvent event) {
+        _handleGoogleAuthenticationEvent(context, event);
+      },
+      onError: (error) {
+        print("Google Sign-In error: $error");
+      },
+    );
+
+    // Attempt lightweight authentication (silent sign-in)
+    await googleSignIn.attemptLightweightAuthentication();
+  }
+
+  /// Handle authentication events from Google Sign-In
+  static Future<void> _handleGoogleAuthenticationEvent(
+    BuildContext context,
+    GoogleSignInAuthenticationEvent event,
+  ) async {
+    final GoogleSignInAccount? user = switch (event) {
+      GoogleSignInAuthenticationEventSignIn() => event.user,
+      GoogleSignInAuthenticationEventSignOut() => null,
+    };
+
+    if (user != null) {
+      // User signed in, process the authentication
+      await _processGoogleUser(context, user);
+    }
+  }
+
+  /// Process the Google user after successful sign-in via the stream
+  static Future<void> _processGoogleUser(
+    BuildContext context,
+    GoogleSignInAccount user,
+  ) async {
+    try {
+      final GoogleSignInAuthentication googleAuth = await user.authentication;
+
+      Utils.printLog("Id Token : ${googleAuth.idToken}");
 
       final credential = GoogleAuthProvider.credential(
         idToken: googleAuth.idToken,
       );
       final firebaseUser =
           await FirebaseAuth.instance.signInWithCredential(credential);
-      // VAppAlert.showLoading(context: context, isDismissible: true);
+
       if (firebaseUser.user != null) {
-        final user = firebaseUser.user!;
-        await user.updateDisplayName(googleUser.displayName);
-        await user.updatePhotoURL(googleUser.photoUrl);
-        await user.reload();
+        final firebaseUserData = firebaseUser.user!;
+        await firebaseUserData.updateDisplayName(user.displayName);
+        await firebaseUserData.updatePhotoURL(user.photoUrl);
+        await firebaseUserData.reload();
 
         // Après login Google réussi, rediriger vers la vérification du numéro de téléphone
-        AppNavigation.toPage(
-          context,
-          const PhoneAuthentication(),
-        );
+        if (context.mounted) {
+          AppNavigation.toPage(
+            context,
+            const PhoneAuthentication(),
+          );
+        }
         return;
-        // Verify if user exists in the system
-        // final authRes = await authService.checkMethod(
-        //   authType: RegisterMethod.gmail,
-        //   authId: user.uid,
-        // );
-
-        // Utils.printLog("authRes from google login : $authRes");
-
-        // if (authRes == null) {
-        //   // User must complete data
-        //   AppNavigation.toPage(
-        //     context,
-        //     ContinueGetDataScreen(socialUser: socialUser),
-        //   );
-        //   return;
-        // }
-        // User exists, proceed to login
-        await vSafeApiCall<SMyProfile>(
-          onLoading: () async {
-            // Loading already shown
-          },
-          onError: (exception, trace) {
-            if (kDebugMode) {
-              print(trace);
-            }
-            Navigator.of(context).pop();
-            final errEnum = EnumToString.fromString(
-              ApiI18nErrorRes.values,
-              exception.toString(),
-            );
-            VAppAlert.showOkAlertDialog(
-              context: context,
-              title: S.of(context).error,
-              content: AuthTrUtils.tr(errEnum) ?? exception.toString(),
-            );
-          },
-          request: () async {
-            final deviceHelper = DeviceInfoHelper();
-            await authService.login(LoginDto(
-              authId: user.uid,
-              phone: user.phoneNumber,
-              email: user.email,
-              identifier: null,
-              method: RegisterMethod.gmail,
-              pushKey: await (await VChatController
-                      .I.vChatConfig.currentPushProviderService)
-                  ?.getToken(
-                VPlatforms.isWeb ? SConstants.webVapidKey : null,
-              ),
-              deviceInfo: await deviceHelper.getDeviceMapInfo(),
-              deviceId: await deviceHelper.getId(),
-              language: VLanguageListener.I.appLocal.languageCode,
-              platform: VPlatforms.currentPlatform,
-            ));
-            return profileService.getMyProfile();
-          },
-          onSuccess: (response) async {
-            final status = response.registerStatus;
-            await VAppPref.setMap(
-              SStorageKeys.myProfile.name,
-              response.toMap(),
-            );
-            if (status == RegisterStatus.accepted) {
-              refreshToken();
-              await VAppPref.setBool(SStorageKeys.isLogin.name, true);
-              _homeNav(context);
-            } else {
-              context.toPage(
-                WaitingListPage(
-                  profile: response,
-                ),
-                withAnimation: true,
-                removeAll: true,
-              );
-            }
-          },
-          ignoreTimeoutAndNoInternet: false,
-        );
       } else {
+        if (context.mounted) {
+          VAppAlert.showOkAlertDialog(
+            context: context,
+            title: S.of(context).error,
+            content: "Login failed. Please try again.",
+          );
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      if (context.mounted) {
         VAppAlert.showOkAlertDialog(
           context: context,
           title: S.of(context).error,
-          content: "Login failed. Please try again.",
+          content: e.message ?? e.code,
         );
       }
-    } on FirebaseAuthException catch (e) {
+    } catch (e) {
+      if (context.mounted) {
+        VAppAlert.showOkAlertDialog(
+          context: context,
+          title: S.of(context).error,
+          content: e.toString(),
+        );
+      }
+    }
+  }
+
+  /// Trigger Google Sign-In for mobile platforms.
+  /// On web, the renderButton handles this automatically.
+  static Future<void> loginByGoogle(BuildContext context) async {
+    if (kIsWeb) {
+      // On web, authentication is handled by renderButton
+      // which triggers the authenticationEvents stream
+      return;
+    }
+
+    // On mobile, trigger the sign-in flow
+    try {
+      await googleSignIn.authenticate(
+        scopeHint: ['email', 'profile'],
+      );
+      // The authenticationEvents stream will handle the rest
+    } on GoogleSignInException catch (e) {
       VAppAlert.showOkAlertDialog(
         context: context,
         title: S.of(context).error,
-        content: e.message ?? e.code,
+        content: e.toString(),
       );
     } catch (e) {
       VAppAlert.showOkAlertDialog(
