@@ -2044,20 +2044,4 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get usersWillAppearHere => 'Users will appear here when available';
-
-  @override
-  String get updateRequired => 'Mise à jour requise';
-
-  @override
-  String get updateRequiredMessage =>
-      'Une nouvelle version de l\'application est disponible. Veuillez mettre à jour pour continuer à utiliser l\'application.';
-
-  @override
-  String get updateNow => 'Mettre à jour maintenant';
-
-  @override
-  String get laterButton => 'Plus tard';
-
-  @override
-  String get ignoreButton => 'Ignorer';
 }

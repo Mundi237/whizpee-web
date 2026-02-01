@@ -44,3 +44,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Melos
+pubspec_overrides.yaml
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.mocks.dart

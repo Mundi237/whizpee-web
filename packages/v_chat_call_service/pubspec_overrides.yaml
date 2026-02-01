@@ -1,4 +1,0 @@
-# melos_managed_dependency_overrides: s_translation
-dependency_overrides:
-  s_translation:
-    path: ../s_translation

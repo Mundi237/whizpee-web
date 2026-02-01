@@ -194,18 +194,20 @@ abstract class VMediaFileUtils {
   ) async {
     try {
       if (kDebugMode) {
-        print('🔄 Attempting thumbnail generation with v_video_compressor package');
+        print(
+            '🔄 Attempting thumbnail generation with v_video_compressor package');
       }
 
       // Generate thumbnail using v_video_compressor package
       final thumbnail = await _videoCompressor.getVideoThumbnail(
         videoPath,
         VVideoThumbnailConfig(
-          timeMs: 5000,                    // 5 seconds into video
+          timeMs: 5000, // 5 seconds into video
           maxWidth: maxWidth,
-          maxHeight: (maxWidth * 0.67).round(), // Maintain aspect ratio (roughly 3:2)
+          maxHeight:
+              (maxWidth * 0.67).round(), // Maintain aspect ratio (roughly 3:2)
           format: VThumbnailFormat.jpeg,
-          quality: 85,                     // JPEG quality (0-100)
+          quality: 85, // JPEG quality (0-100)
         ),
       );
 
