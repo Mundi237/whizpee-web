@@ -1,33 +1,43 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
+import 'package:super_up/app/modules/annonces/cores/error_handler.dart';
 import 'package:super_up/app/modules/annonces/datas/models/city.dart';
 import 'package:super_up/app/modules/annonces/datas/utils.dart';
-import 'package:super_up/app/modules/annonces/cores/error_handler.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart' show Annonces;
+import 'package:v_platform/v_platform.dart';
 
 class AnnonceService {
   final Dio dio;
 
   AnnonceService(this.dio);
+// ... (lines 15-163 remain unchanged, I will target updateAnnonce specifically below, but I need to insert the import first.
+// I will split this into two replacements or use multi_replace.
+// I will use multi_replace to handle both import and updateAnnonce.
 
   Future<Annonces> createAnnonce({
     required String title,
     required String description,
     required String categorieId,
-    required List<File> images,
+    required List<VPlatformFile> images,
     required String ville,
     required String quartier,
     String? price,
   }) async {
     try {
-      final imagesData = await Future.wait(images
-          .map(
-            (e) async => await MultipartFile.fromFile(e.path,
-                filename: '${DateTime.now().millisecondsSinceEpoch}.png'),
-          )
-          .toList());
+      final imagesData = await Future.wait(images.map((e) async {
+        if (e.bytes != null) {
+          return MultipartFile.fromBytes(
+            e.bytes!,
+            filename: e.name,
+          );
+        } else if (e.fileLocalPath != null) {
+          return await MultipartFile.fromFile(
+            e.fileLocalPath!,
+            filename: e.name,
+          );
+        }
+        throw Exception("Invalid file: neither bytes nor path available");
+      }).toList());
 
       final Map<String, dynamic> formDataMap = {
         'title': title,
@@ -168,7 +178,7 @@ class AnnonceService {
     String? title,
     String? description,
     String? categorieId,
-    List<File>? images,
+    List<VPlatformFile>? images,
     String? price,
   }) async {
     try {
@@ -182,12 +192,20 @@ class AnnonceService {
 
       // Ajouter les nouvelles images si fournies
       if (images != null && images.isNotEmpty) {
-        final imagesData = await Future.wait(images
-            .map(
-              (e) async => await MultipartFile.fromFile(e.path,
-                  filename: '${DateTime.now().millisecondsSinceEpoch}.png'),
-            )
-            .toList());
+        final imagesData = await Future.wait(images.map((e) async {
+          if (e.bytes != null) {
+            return MultipartFile.fromBytes(
+              e.bytes!,
+              filename: e.name,
+            );
+          } else if (e.fileLocalPath != null) {
+            return await MultipartFile.fromFile(
+              e.fileLocalPath!,
+              filename: e.name,
+            );
+          }
+          throw Exception("Invalid file: neither bytes nor path available");
+        }).toList());
         formDataMap['images'] = imagesData;
       }
 

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -15,8 +14,11 @@ import 'package:super_up/app/modules/annonces/presentation/image_viewer.dart';
 import 'package:super_up/app/modules/annonces/providers/annonce_controller.dart';
 import 'package:super_up/app/modules/annonces/providers/boost_controller.dart';
 import 'package:super_up/app/modules/home/mobile/rooms_tab/controllers/rooms_tab_controller.dart';
+import 'package:super_up/app/modules/home/home_wide_modules/home/controller/home_wide_controller.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:super_up/app/core/utils/date_formatter.dart';
+import 'package:super_up/app/modules/annonces/datas/services/api_services.dart';
+import 'package:super_up/app/core/widgets/universal_image.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart'
     show Annonces, VChatController;
 
@@ -200,6 +202,35 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage>
                   AppHeaderLogo(
                     icon: Icons.article_rounded,
                     title: "Détails de l'annonce",
+                    actions: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            if (GetIt.I.get<AppSizeHelper>().isWide(context)) {
+                              GetIt.I.get<HomeWideController>().closeDetail();
+                            } else {
+                              Navigator.pop(context);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
 
                   // Image carousel section
@@ -252,19 +283,20 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage>
                                           child: Hero(
                                             tag:
                                                 'annonce_${currentAnnouncement.id}_image_$index',
-                                            child: CachedNetworkImage(
-                                              imageUrl: imagesList[index],
+                                            child: UniversalImage(
+                                              imageUrl: _processUrl(
+                                                  imagesList[index]),
                                               fit: BoxFit.cover,
-                                              placeholder: (context, url) =>
+                                              placeholderBuilder: (context) =>
                                                   SkeletonLoaders
                                                       .announcementImage(
                                                 width: double.infinity,
                                                 height: double.infinity,
                                                 borderRadius: BorderRadius.zero,
                                               ),
-                                              errorWidget:
-                                                  (context, url, error) =>
-                                                      Container(
+                                              errorBuilder: (context, error,
+                                                      stackTrace) =>
+                                                  Container(
                                                 color: Colors.grey[900],
                                                 child: const Icon(Icons.error),
                                               ),
@@ -782,5 +814,13 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage>
         );
       },
     );
+  }
+
+  String _processUrl(String url) {
+    if (url.startsWith('http')) {
+      return url;
+    }
+    final cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    return "$BASE_URL/$cleanUrl";
   }
 }

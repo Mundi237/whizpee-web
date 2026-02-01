@@ -3,7 +3,8 @@ import 'package:get_it/get_it.dart';
 // import 'package:super_up/app/core/widgets/s_app_button.dart';
 import 'package:super_up/app/modules/annonces/cores/appstate.dart';
 import 'package:super_up/app/modules/annonces/datas/models/package.dart';
-import 'package:super_up/app/modules/annonces/presentation/payment_page.dart';
+import 'package:super_up/app/modules/annonces/datas/models/credits/pricing.dart';
+import 'package:super_up/app/modules/annonces/presentation/credits/purchase_credits_page.dart';
 import 'package:super_up/app/modules/annonces/providers/credit_provider.dart';
 import 'package:super_up_core/super_up_core.dart';
 
@@ -154,7 +155,17 @@ class PackageItem extends StatelessWidget {
       margin: EdgeInsets.only(bottom: 8.0),
       child: ListTile(
         onTap: () {
-          context.toPage(PaymentPage(package: package));
+          final creditPackage = CreditPackage(
+            id: package.id,
+            name: package.name,
+            amount: package.amount.toInt(),
+            credits: package.credits,
+            bonusCredits: package.bonusCredits,
+          );
+          context.toPage(PurchaseCreditsPage(
+            selectedPackage: creditPackage,
+            mode: PurchaseMode.byPackage,
+          ));
         },
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         title: Text("${package.name} (${package.credits} crédits)"),

@@ -1,6 +1,7 @@
 // ignore_for_file: depend_on_referenced_packages
 
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage>
     with TickerProviderStateMixin {
   final TextEditingController quarterController = TextEditingController();
   final TextEditingController _categorieController = TextEditingController();
-  final List<File> _newImages = [];
+  final List<VPlatformFile> _newImages = [];
   final formKey = GlobalKey<FormState>();
 
   late AnimationController _floatController;
@@ -108,18 +109,6 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage>
     )) as List<VBaseMediaRes>?;
     if (fileRes == null || fileRes.isEmpty) return null;
     return fileRes.first;
-  }
-
-  File? vBaseMediaResToFile(VBaseMediaRes media) {
-    try {
-      final filePath = media.getVPlatformFile().fileLocalPath;
-      if (filePath == null) return null;
-      final file = File(filePath);
-      return file;
-    } catch (e) {
-      debugPrint("Erreur conversion VBaseMediaRes en File: $e");
-      return null;
-    }
   }
 
   void _nextStep() {
@@ -907,10 +896,15 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage>
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        child: Image.file(
-                          image,
-                          fit: BoxFit.cover,
-                        ),
+                        child: image.bytes != null
+                            ? Image.memory(
+                                Uint8List.fromList(image.bytes!),
+                                fit: BoxFit.cover,
+                              )
+                            : Image.file(
+                                File(image.fileLocalPath!),
+                                fit: BoxFit.cover,
+                              ),
                       ),
                     ),
                     Positioned(
@@ -945,12 +939,10 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage>
                 onTap: () async {
                   final media = await pickImage(false);
                   if (media != null) {
-                    final file = vBaseMediaResToFile(media);
-                    if (file != null) {
-                      setState(() {
-                        _newImages.add(file);
-                      });
-                    }
+                    final file = media.getVPlatformFile();
+                    setState(() {
+                      _newImages.add(file);
+                    });
                   }
                 },
                 child: Container(

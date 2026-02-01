@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get_it/get_it.dart';
+import 'package:super_up/app/modules/home/home_wide_modules/home/controller/home_wide_controller.dart';
 import 'package:super_up/app/core/widgets/app_header_logo.dart';
 import 'package:super_up/app/modules/annonces/datas/models/credits/pricing.dart';
 import 'package:super_up/app/modules/annonces/providers/wallet_provider.dart';
 import 'package:super_up/app/modules/annonces/presentation/credits/widgets/phone_number_input.dart';
 import 'package:super_up_core/super_up_core.dart';
+import 'package:super_up/app/modules/annonces/cores/appstate.dart';
 
 class PurchaseCreditsPage extends StatefulWidget {
   final PurchaseMode mode;
@@ -50,6 +52,8 @@ class _PurchaseCreditsPageState extends State<PurchaseCreditsPage>
     // Retarder le chargement après le build initial pour éviter l'erreur
     // "setState() called during build"
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Reset purchase state to avoid stale data
+      GetIt.I<WalletProvider>().currentPurchase.value = AppState();
       _loadPricing();
     });
   }
@@ -173,7 +177,35 @@ class _PurchaseCreditsPageState extends State<PurchaseCreditsPage>
                       child: AppHeaderLogo(
                         icon: Icons.shopping_cart_rounded,
                         title: "Acheter des crédits",
-                        actions: const [],
+                        actions: [
+                          if (GetIt.I.get<AppSizeHelper>().isWide(context))
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: GestureDetector(
+                                onTap: () {
+                                  GetIt.I
+                                      .get<HomeWideController>()
+                                      .closeDetail();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.25),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.close_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                     // Form Content
@@ -1149,7 +1181,11 @@ class _PurchaseCreditsPageState extends State<PurchaseCreditsPage>
               'Achat initié avec succès. Veuillez valider sur votre téléphone.',
           context: context,
         );
-        Navigator.pop(context);
+        if (GetIt.I.get<AppSizeHelper>().isWide(context)) {
+          GetIt.I.get<HomeWideController>().closeDetail();
+        } else {
+          Navigator.pop(context);
+        }
       } else if (walletProvider.currentPurchase.value.hasError) {
         VAppAlert.showErrorSnackBar(
           message: walletProvider.currentPurchase.value.errorModel?.error ??

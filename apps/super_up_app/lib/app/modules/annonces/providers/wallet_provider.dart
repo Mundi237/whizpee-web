@@ -178,13 +178,14 @@ class WalletProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    balance.dispose();
-    pricing.dispose();
-    packages.dispose();
-    transactions.dispose();
-    purchases.dispose();
-    stats.dispose();
-    currentPurchase.dispose();
+    // Singleton should not dispose its notifiers
+    // balance.dispose();
+    // pricing.dispose();
+    // packages.dispose();
+    // transactions.dispose();
+    // purchases.dispose();
+    // stats.dispose();
+    // currentPurchase.dispose();
     super.dispose();
   }
 }

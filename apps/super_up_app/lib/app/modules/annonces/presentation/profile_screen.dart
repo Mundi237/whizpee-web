@@ -1,5 +1,6 @@
 import 'dart:ui';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:super_up/app/modules/annonces/datas/services/api_services.dart';
+import 'package:super_up/app/core/widgets/universal_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,6 +16,7 @@ import 'package:super_up/app/modules/annonces/presentation/manage_announcements_
 import 'package:super_up/app/modules/annonces/providers/annonce_controller.dart';
 import 'package:super_up/app/modules/home/mobile/settings_tab/views/settings_tab_view.dart';
 import 'package:super_up/app/modules/home/settings_modules/my_account/views/my_account_page.dart';
+import 'package:super_up/app/modules/home/home_wide_modules/home/controller/home_wide_controller.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:v_platform/v_platform.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -407,7 +409,13 @@ class _ProfileScreenState extends State<ProfileScreen>
             child: GestureDetector(
               onTap: () {
                 HapticFeedback.lightImpact();
-                context.toPage(const ManageAnnouncementsPage());
+                if (GetIt.I.get<AppSizeHelper>().isWide(context)) {
+                  GetIt.I
+                      .get<HomeWideController>()
+                      .openDetail(const ManageAnnouncementsPage());
+                } else {
+                  context.toPage(const ManageAnnouncementsPage());
+                }
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -456,7 +464,13 @@ class _ProfileScreenState extends State<ProfileScreen>
             child: GestureDetector(
               onTap: () {
                 HapticFeedback.lightImpact();
-                context.toPage(const NewWalletPage());
+                if (GetIt.I.get<AppSizeHelper>().isWide(context)) {
+                  GetIt.I
+                      .get<HomeWideController>()
+                      .openDetail(const NewWalletPage());
+                } else {
+                  context.toPage(const NewWalletPage());
+                }
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -501,7 +515,11 @@ class _ProfileScreenState extends State<ProfileScreen>
           GestureDetector(
             onTap: () {
               HapticFeedback.lightImpact();
-              context.toPage(MyAccountPage());
+              if (GetIt.I.get<AppSizeHelper>().isWide(context)) {
+                GetIt.I.get<HomeWideController>().openDetail(MyAccountPage());
+              } else {
+                context.toPage(MyAccountPage());
+              }
             },
             child: Container(
               padding: const EdgeInsets.all(16),
@@ -723,39 +741,48 @@ class _ProfileScreenState extends State<ProfileScreen>
                         return GestureDetector(
                           onTap: () {
                             HapticFeedback.lightImpact();
-                            context.toPage(
-                              AnnouncementDetailPage(
-                                announcement: announcement,
-                              ),
-                            );
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.white.withValues(alpha: 0.1),
-                                  Colors.white.withValues(alpha: 0.05),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.15),
-                              ),
-                              image: kIsWeb
-                                  ? DecorationImage(
-                                      image: NetworkImage(
-                                          announcement.images?.firstOrNull ??
-                                              ''),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : DecorationImage(
-                                      image: CachedNetworkImageProvider(
-                                          announcement.images?.firstOrNull ??
-                                              ''),
-                                      fit: BoxFit.cover,
+                            if (GetIt.I.get<AppSizeHelper>().isWide(context)) {
+                              GetIt.I.get<HomeWideController>().openDetail(
+                                    AnnouncementDetailPage(
+                                      announcement: announcement,
                                     ),
+                                  );
+                            } else {
+                              context.toPage(
+                                AnnouncementDetailPage(
+                                  announcement: announcement,
+                                ),
+                              );
+                            }
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                UniversalImage(
+                                  imageUrl: _processUrl(
+                                      announcement.images?.firstOrNull ?? ''),
+                                  fit: BoxFit.cover,
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Colors.white.withValues(alpha: 0.1),
+                                        Colors.white.withValues(alpha: 0.05),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.15),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         );
@@ -769,6 +796,14 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
       ),
     ).animate().fadeIn(duration: 600.ms, delay: 500.ms);
+  }
+
+  String _processUrl(String url) {
+    if (url.startsWith('http')) {
+      return url;
+    }
+    final cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    return "$BASE_URL/$cleanUrl";
   }
 }
 

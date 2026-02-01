@@ -7,6 +7,7 @@ import 'package:super_up/app/modules/annonces/cores/error_handler.dart';
 import 'package:super_up/app/modules/annonces/datas/utils.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:v_platform/v_platform.dart';
+import 'package:flutter/foundation.dart';
 
 class InterceptorsWrapper extends Interceptor {
   final Dio dio;
@@ -143,7 +144,7 @@ class API {
   final Dio dios = Dio(
     BaseOptions(
       baseUrl: "$BASE_URL/api/v1",
-      sendTimeout: const Duration(seconds: 30),
+      sendTimeout: kIsWeb ? null : const Duration(seconds: 30),
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 30),
     ),
@@ -158,7 +159,7 @@ class APIPackages {
   final Dio dios = Dio(
     BaseOptions(
       baseUrl: BASE_URL,
-      sendTimeout: const Duration(seconds: 30),
+      sendTimeout: kIsWeb ? null : const Duration(seconds: 30),
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 30),
     ),
@@ -173,7 +174,7 @@ class APICredits {
   final Dio dios = Dio(
     BaseOptions(
       baseUrl: "$BASE_URL/api",
-      sendTimeout: const Duration(seconds: 30),
+      sendTimeout: kIsWeb ? null : const Duration(seconds: 30),
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 30),
     ),

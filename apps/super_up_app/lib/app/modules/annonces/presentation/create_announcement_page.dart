@@ -1,6 +1,7 @@
 // ignore_for_file: depend_on_referenced_packages
 
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -41,7 +42,7 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage>
     with TickerProviderStateMixin {
   final TextEditingController quarterController = TextEditingController();
   final TextEditingController _categorieController = TextEditingController();
-  final List<File> _images = [];
+  final List<VPlatformFile> _images = [];
   final formKey = GlobalKey<FormState>();
 
   late AnimationController _floatController;
@@ -94,18 +95,6 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage>
     )) as List<VBaseMediaRes>?;
     if (fileRes == null || fileRes.isEmpty) return null;
     return fileRes.first;
-  }
-
-  File? vBaseMediaResToFile(VBaseMediaRes media) {
-    try {
-      final filePath = media.getVPlatformFile().fileLocalPath;
-      if (filePath == null) return null;
-      final file = File(filePath);
-      return file;
-    } catch (e) {
-      debugPrint("Erreur conversion VBaseMediaRes en File: $e");
-      return null;
-    }
   }
 
   void _nextStep() {
@@ -839,13 +828,11 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage>
                               Navigator.of(context).pop();
                               final result = await pickImage(false);
                               if (result != null) {
-                                final data = vBaseMediaResToFile(result);
-                                if (data != null) {
-                                  setState(() {
-                                    _images.add(data);
-                                  });
-                                  HapticFeedback.mediumImpact();
-                                }
+                                final data = result.getVPlatformFile();
+                                setState(() {
+                                  _images.add(data);
+                                });
+                                HapticFeedback.mediumImpact();
                               }
                             },
                           ),
@@ -858,13 +845,11 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage>
                               Navigator.of(context).pop();
                               final result = await pickImage(true);
                               if (result != null) {
-                                final data = vBaseMediaResToFile(result);
-                                if (data != null) {
-                                  setState(() {
-                                    _images.add(data);
-                                  });
-                                  HapticFeedback.mediumImpact();
-                                }
+                                final data = result.getVPlatformFile();
+                                setState(() {
+                                  _images.add(data);
+                                });
+                                HapticFeedback.mediumImpact();
                               }
                             },
                           ),
@@ -1033,12 +1018,19 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage>
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(14),
-                      child: Image.file(
-                        imageFile,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                      ),
+                      child: imageFile.bytes != null
+                          ? Image.memory(
+                              Uint8List.fromList(imageFile.bytes!),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            )
+                          : Image.file(
+                              File(imageFile.fileLocalPath!),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
                     ),
                   ),
                   Positioned(

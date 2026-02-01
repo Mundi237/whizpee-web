@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:diacritic/diacritic.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +15,7 @@ import 'package:super_up/app/modules/annonces/providers/credit_provider.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart'
     show Annonces, Categorie, VRoom;
+import 'package:v_platform/v_platform.dart';
 
 class AnnonceController extends ChangeNotifier {
   final AnnonceService annonceService;
@@ -293,16 +292,16 @@ class AnnonceController extends ChangeNotifier {
   }
 
   // List of selected images
-  List<File> images = [];
+  List<VPlatformFile> images = [];
 
   // Add image
-  Future<void> addImage(BuildContext context) async {
-    File? image = await Utils.pickImage(context);
-    if (image != null) {
-      images.add(image);
-      notifyListeners();
-    }
-  }
+//   Future<void> addImage(BuildContext context) async {
+//     File? image = await Utils.pickImage(context);
+//     if (image != null) {
+//       images.add(image);
+//       notifyListeners();
+//     }
+//   }
 
   // Remove image by index
   void removeImage(int index) {
@@ -325,7 +324,7 @@ class AnnonceController extends ChangeNotifier {
 
   // Create annonce
   Future<void> createAnnonce(BuildContext context,
-      {List<File>? images, required String quartier}) async {
+      {List<VPlatformFile>? images, required String quartier}) async {
     if (selectedCategorie == null) {
       VAppAlert.showSuccessSnackBar(
           message: "pleasselect categorie", context: context);
@@ -387,7 +386,7 @@ class AnnonceController extends ChangeNotifier {
     String? title,
     String? description,
     String? categorieId,
-    List<File>? newImages,
+    List<VPlatformFile>? newImages,
     String? price,
   }) async {
     try {

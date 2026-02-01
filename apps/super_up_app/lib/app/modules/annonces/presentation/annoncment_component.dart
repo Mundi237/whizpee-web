@@ -6,11 +6,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:super_up/app/core/widgets/skeleton_loaders.dart';
 import 'package:super_up/app/modules/annonces/presentation/announcement_detail_page.dart';
+import 'package:super_up/app/modules/home/home_wide_modules/home/controller/home_wide_controller.dart';
 import 'package:super_up_core/super_up_core.dart';
+import 'package:super_up/app/modules/annonces/datas/services/api_services.dart';
 import 'package:super_up/app/core/utils/date_formatter.dart';
+import 'package:super_up/app/core/widgets/universal_image.dart';
 import 'package:v_chat_sdk_core/v_chat_sdk_core.dart' show Annonces;
 
 class AnnoncmentComponent extends StatefulWidget {
@@ -119,9 +123,15 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
         },
         onTapUp: (_) {
           setState(() => _isPressed = false);
-          context.toPage(
-            AnnouncementDetailPage(announcement: widget.announcement),
-          );
+          if (GetIt.I.get<AppSizeHelper>().isWide(context)) {
+            GetIt.I.get<HomeWideController>().openDetail(
+                  AnnouncementDetailPage(announcement: widget.announcement),
+                );
+          } else {
+            context.toPage(
+              AnnouncementDetailPage(announcement: widget.announcement),
+            );
+          }
         },
         onTapCancel: () {
           setState(() => _isPressed = false);
@@ -200,25 +210,28 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
                                             () => _currentImageIndex = index),
                                         itemCount: images.length,
                                         itemBuilder: (context, index) {
-                                          return kIsWeb
-                                              ? Image.network(
-                                                  images[index],
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (_, __, ___) =>
-                                                      _buildPlaceholder(),
-                                                )
-                                              : CachedNetworkImage(
-                                                  imageUrl: images[index],
-                                                  fit: BoxFit.cover,
-                                                  placeholder: (_, __) =>
-                                                      SkeletonLoaders
-                                                          .announcementImage(
-                                                    width: 120,
-                                                    height: 150,
-                                                  ),
-                                                  errorWidget: (_, __, ___) =>
-                                                      _buildPlaceholder(),
-                                                );
+                                          return UniversalImage(
+                                            imageUrl:
+                                                _processUrl(images[index]),
+                                            fit: BoxFit.cover,
+                                            placeholderBuilder: (_) =>
+                                                SkeletonLoaders
+                                                    .announcementImage(
+                                              width: 120,
+                                              height: 150,
+                                            ),
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              // ignore: avoid_print
+                                              if (kDebugMode) {
+                                                print(
+                                                    "❌ WEB IMAGE ERROR: ${_processUrl(images[index])}");
+                                                print(
+                                                    "❌ ERROR DETAILS: $error");
+                                              }
+                                              return _buildPlaceholder();
+                                            },
+                                          );
                                         },
                                       ),
                                     )
@@ -577,6 +590,16 @@ class _AnnoncmentComponentState extends State<AnnoncmentComponent> {
         ],
       ),
     );
+  }
+
+  String _processUrl(String url) {
+    if (url.startsWith('http')) {
+      return url;
+    }
+    // Remove leading slash if present to avoid double slashes if BASE_URL has one (it doesn't here, but good practice)
+    // BASE_URL is "https://api.whizpee.com"
+    final cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    return "$BASE_URL/$cleanUrl";
   }
 }
 

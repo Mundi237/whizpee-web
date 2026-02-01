@@ -94,26 +94,14 @@ class WideRoomsNavigation extends StatelessWidget {
                         ),
                       ],
                     ),
-                    trailing: Row(
-                      children: [
-                        CupertinoButton(
-                          onPressed: onShowSettings,
-                          child: const Icon(CupertinoIcons.settings),
-                        ),
-                        CupertinoButton(
-                          onPressed: onNewChat,
-                          child: const Icon(CupertinoIcons.chat_bubble_text),
-                        ),
-                        CupertinoButton(
-                          onPressed: onOpenStory,
-                          child: const Icon(Icons.history_toggle_off_rounded),
-                        ),
-                        CupertinoButton(
-                          onPressed: onOpenCallLogs,
-                          child: const Icon(CupertinoIcons.phone),
-                        ),
-                      ],
-                    ),
+                    // trailing: Row(
+                    //   children: [
+                    //     CupertinoButton(
+                    //       onPressed: onNewChat,
+                    //       child: const Icon(CupertinoIcons.chat_bubble_text),
+                    //     ),
+                    //   ],
+                    // ),
                   ),
                   onSearchClicked: onSearchClicked,
                   language: vRoomLanguageModel(context),

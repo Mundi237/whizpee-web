@@ -12,6 +12,7 @@ import 'package:super_up/app/modules/annonces/presentation/wallet_transactions/r
 import 'package:super_up/app/modules/annonces/providers/credit_provider.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:v_platform/v_platform.dart';
+import 'package:super_up/app/modules/home/home_wide_modules/home/controller/home_wide_controller.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -123,7 +124,13 @@ class _WalletScreenState extends State<WalletScreen> {
                       title: "Packages",
                       icone: addIcons,
                       onTap: () {
-                        context.toPage(PackagesScreen());
+                        if (GetIt.I.get<AppSizeHelper>().isWide(context)) {
+                          GetIt.I
+                              .get<HomeWideController>()
+                              .openDetail(PackagesScreen());
+                        } else {
+                          context.toPage(PackagesScreen());
+                        }
                       },
                     ),
                     BoxButton(
@@ -135,9 +142,17 @@ class _WalletScreenState extends State<WalletScreen> {
                       title: "Retirer",
                       icone: send,
                       onTap: () {
-                        context.toPage(RecapPage(
-                          data: {'title': "Credit withdrawal"},
-                        ));
+                        if (GetIt.I.get<AppSizeHelper>().isWide(context)) {
+                          GetIt.I
+                              .get<HomeWideController>()
+                              .openDetail(RecapPage(
+                                data: {'title': "Credit withdrawal"},
+                              ));
+                        } else {
+                          context.toPage(RecapPage(
+                            data: {'title': "Credit withdrawal"},
+                          ));
+                        }
                       },
                     ),
                   ],

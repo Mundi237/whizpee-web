@@ -8,6 +8,7 @@ import 'package:super_up/app/core/widgets/app_header_logo.dart';
 import 'package:super_up/app/modules/annonces/datas/models/credits/credit_transaction.dart';
 import 'package:super_up/app/modules/annonces/providers/wallet_provider.dart';
 import 'package:super_up_core/super_up_core.dart';
+import 'package:super_up/app/modules/home/home_wide_modules/home/controller/home_wide_controller.dart';
 
 class TransactionsHistoryPage extends StatefulWidget {
   const TransactionsHistoryPage({super.key});
@@ -165,7 +166,32 @@ class _TransactionsHistoryPageState extends State<TransactionsHistoryPage>
                     child: AppHeaderLogo(
                       icon: Icons.history_rounded,
                       title: "Historique des transactions",
-                      actions: const [],
+                      actions: [
+                        if (GetIt.I.get<AppSizeHelper>().isWide(context))
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                GetIt.I.get<HomeWideController>().closeDetail();
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.25),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.close_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   // Tabs section

@@ -17,6 +17,7 @@ import '../../../../create_group/mobile/sheet_for_create_group.dart';
 import '../../../mobile/settings_tab/views/settings_tab_view.dart';
 import '../../../mobile/users_tab/views/users_tab_view.dart';
 import '../../../mobile/calls_tab/views/calls_tab_view.dart';
+import '../model/home_wide_section.dart';
 
 class HomeWideController implements SBaseController {
   final ProfileApiService profileApiService;
@@ -32,9 +33,15 @@ class HomeWideController implements SBaseController {
   }
 
   VRoom? currentRoom;
+  final activeSection = ValueNotifier<HomeWideSection>(HomeWideSection.chats);
 
   @override
   void onInit() {}
+
+  void changeSection(HomeWideSection section) {
+    activeSection.value = section;
+    detailWidget.value = null; // Clear detail view when switching sections
+  }
 
   void onRoomItemPress(VRoom room, BuildContext c) {
     if (currentRoom == room) {
@@ -157,5 +164,16 @@ class HomeWideController implements SBaseController {
       const CallsTabView(),
       appNavigationType: AppNavigationType.chatRoom,
     );
+  }
+
+  // ---- Detail Navigation Logic ----
+  final detailWidget = ValueNotifier<Widget?>(null);
+
+  void openDetail(Widget view) {
+    detailWidget.value = view;
+  }
+
+  void closeDetail() {
+    detailWidget.value = null;
   }
 }

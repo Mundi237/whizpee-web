@@ -12,6 +12,7 @@ import 'package:super_up/app/modules/annonces/presentation/credits/transactions_
 import 'package:super_up/app/modules/annonces/presentation/credits/withdrawal_page.dart';
 import 'package:super_up_core/super_up_core.dart';
 import 'package:v_platform/v_platform.dart';
+import 'package:super_up/app/modules/home/home_wide_modules/home/controller/home_wide_controller.dart';
 
 class NewWalletPage extends StatefulWidget {
   const NewWalletPage({super.key});
@@ -144,7 +145,15 @@ class _NewWalletPageState extends State<NewWalletPage>
                           GestureDetector(
                             onTap: () {
                               HapticFeedback.lightImpact();
-                              context.toPage(const TransactionsHistoryPage());
+                              if (GetIt.I
+                                  .get<AppSizeHelper>()
+                                  .isWide(context)) {
+                                GetIt.I.get<HomeWideController>().openDetail(
+                                      const TransactionsHistoryPage(),
+                                    );
+                              } else {
+                                context.toPage(const TransactionsHistoryPage());
+                              }
                             },
                             child: Container(
                               padding: const EdgeInsets.all(12),
@@ -162,6 +171,29 @@ class _NewWalletPageState extends State<NewWalletPage>
                               ),
                             ),
                           ),
+                          if (GetIt.I.get<AppSizeHelper>().isWide(context)) ...[
+                            SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () {
+                                GetIt.I.get<HomeWideController>().closeDetail();
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.25),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.close_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -485,7 +517,13 @@ class _NewWalletPageState extends State<NewWalletPage>
               color: AppTheme.primaryGreen,
               onTap: () {
                 HapticFeedback.lightImpact();
-                context.toPage(const PurchaseCreditsPage());
+                if (GetIt.I.get<AppSizeHelper>().isWide(context)) {
+                  GetIt.I
+                      .get<HomeWideController>()
+                      .openDetail(const PurchaseCreditsPage());
+                } else {
+                  context.toPage(const PurchaseCreditsPage());
+                }
               },
             ),
           ),
@@ -497,7 +535,13 @@ class _NewWalletPageState extends State<NewWalletPage>
               color: Colors.blue.shade600,
               onTap: () {
                 HapticFeedback.lightImpact();
-                context.toPage(const PackagesListPage());
+                if (GetIt.I.get<AppSizeHelper>().isWide(context)) {
+                  GetIt.I
+                      .get<HomeWideController>()
+                      .openDetail(const PackagesListPage());
+                } else {
+                  context.toPage(const PackagesListPage());
+                }
               },
             ),
           ),
@@ -509,7 +553,13 @@ class _NewWalletPageState extends State<NewWalletPage>
               color: Colors.orange.shade600,
               onTap: () {
                 HapticFeedback.lightImpact();
-                context.toPage(const WithdrawalPage());
+                if (GetIt.I.get<AppSizeHelper>().isWide(context)) {
+                  GetIt.I
+                      .get<HomeWideController>()
+                      .openDetail(const WithdrawalPage());
+                } else {
+                  context.toPage(const WithdrawalPage());
+                }
               },
             ),
           ),
