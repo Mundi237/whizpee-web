@@ -1,0 +1,10 @@
+services:
+  super-up-web:
+    # Build context is the root to allow access to shared packages
+    build:
+      context: .
+      dockerfile: apps/super_up_app/Dockerfile
+    container_name: super_up_web_container
+    ports:
+      - "8080:80"
+    restart: always

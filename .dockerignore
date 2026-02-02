@@ -1,0 +1,15 @@
+.git
+.dart_tool
+.idea
+.vscode
+build
+ios
+android
+windows
+linux
+macos
+*.log
+doc
+*.md
+LICENSE
+pubspec.lock
