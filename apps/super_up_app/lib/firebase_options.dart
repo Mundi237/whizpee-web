@@ -25,15 +25,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -73,6 +67,27 @@ class DefaultFirebaseOptions {
     authDomain: 'whizpee-91213.firebaseapp.com',
     storageBucket: 'whizpee-91213.firebasestorage.app',
     measurementId: 'G-SYPTK9XN0M',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyCnB4rgftB9ezF93iAVR5-9Y8JSFQy_NyE',
+    appId: '1:991808329176:web:69bde02d3a0c3c23db8ead',
+    messagingSenderId: '991808329176',
+    projectId: 'whizpee-91213',
+    authDomain: 'whizpee-91213.firebaseapp.com',
+    storageBucket: 'whizpee-91213.firebasestorage.app',
+    measurementId: 'G-4JB24ZRWMD',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyAqFoftRo4lbE1Tp7GOmxCeKMShDmiBku8',
+    appId: '1:991808329176:ios:5e1a0961b4aff8e1db8ead',
+    messagingSenderId: '991808329176',
+    projectId: 'whizpee-91213',
+    storageBucket: 'whizpee-91213.firebasestorage.app',
+    androidClientId: '991808329176-2urdm136p997548j2sl0d6esfae7n5en.apps.googleusercontent.com',
+    iosClientId: '991808329176-cvdeinskb3pjsgdsqej9vaqirv2abkkc.apps.googleusercontent.com',
+    iosBundleId: 'com.whizpee.app',
   );
 
 }
